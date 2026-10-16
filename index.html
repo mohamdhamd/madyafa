@@ -4,10 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#0f766e">
+    <title>دفتر المضيافة الذكي | متابعة التحصيل</title>
+
+    <!-- Favicon & Touch Icons -->
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+
+    <!-- PWA Web App Manifest & Mobile Meta -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="المضيافة">
-    <title>دفتر المضيافة الذكي | متابعة التحصيل</title>
+    <meta name="application-name" content="المضيافة">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,6 +32,11 @@
             font-family: 'Cairo', sans-serif;
             -webkit-tap-highlight-color: transparent;
             box-sizing: border-box;
+        }
+
+        html, body {
+            overflow-x: hidden;
+            max-width: 100%;
         }
 
         body {
@@ -107,35 +124,37 @@
     <header class="bg-gradient-to-l from-teal-800 via-teal-700 to-emerald-700 text-white shadow-md sticky top-0 z-40">
         <div class="max-w-6xl mx-auto px-3 py-2.5 flex items-center justify-between gap-2">
             <!-- App Brand & Editable Title -->
-            <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-10 h-10 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center shrink-0 shadow-inner border border-white/20">
-                    <i class="fa-solid fa-kaaba text-amber-300 text-lg"></i>
+            <div class="flex items-center gap-2 min-w-0 flex-1">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-teal-900/40 backdrop-blur flex items-center justify-center shrink-0 shadow-md border border-white/20 overflow-hidden">
+                    <img src="./favicon.svg" alt="المضيافة" class="w-7 h-7 sm:w-8 sm:h-8 object-contain drop-shadow">
                 </div>
-                <div class="truncate">
+                <div class="min-w-0 flex-1 truncate">
                     <div class="flex items-center gap-1.5 cursor-pointer group" onclick="openTitleModal()">
-                        <h1 id="madyafaTitleDisplay" class="font-bold text-base sm:text-lg truncate">دفتر المضيافة الذكي</h1>
-                        <i class="fa-solid fa-pen text-[11px] text-teal-200 opacity-80 group-hover:opacity-100"></i>
+                        <h1 id="madyafaTitleDisplay" class="font-bold text-sm sm:text-lg truncate">دفتر المضيافة الذكي</h1>
+                        <i class="fa-solid fa-pen text-[10px] sm:text-[11px] text-teal-200 opacity-80 group-hover:opacity-100"></i>
                     </div>
-                    <p class="text-[11px] text-teal-100 flex items-center gap-1.5">
-                        <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span id="storageStatusText">حفظ دائم ومؤمّن • الشهرية: <strong id="headerDefaultAmount">100</strong> ج.م</span>
+                    <p class="text-[10px] sm:text-[11px] text-teal-100 flex items-center gap-1.5 truncate">
+                        <span class="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                        <span id="storageStatusText" class="truncate">حفظ مؤمّن • الشهرية: <strong id="headerDefaultAmount">100</strong> ج.م</span>
                     </p>
                 </div>
             </div>
 
             <!-- Top Action Buttons -->
-            <div class="flex items-center gap-1.5 shrink-0">
-                <button id="installPwaBtn" onclick="triggerPwaInstall()" class="hidden bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold text-xs px-2.5 py-2 rounded-xl shadow flex items-center gap-1 transition">
-                    <i class="fa-solid fa-download"></i>
+            <div class="flex items-center gap-1 sm:gap-1.5 shrink-0">
+                <button id="installPwaBtn" onclick="triggerPwaInstall()" class="bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-extrabold text-xs px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-xl shadow flex items-center gap-1 sm:gap-1.5 transition" title="تثبيت التطبيق على الموبايل">
+                    <i class="fa-solid fa-mobile-screen-button text-amber-950 text-sm"></i>
                     <span class="hidden sm:inline">تثبيت التطبيق</span>
+                    <span class="sm:hidden text-[11px]">تثبيت</span>
                 </button>
-                <button onclick="openWhatsAppModal()" class="bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-white font-bold text-xs px-3 py-2 rounded-xl shadow flex items-center gap-1.5 transition" title="مشاركة التقرير عبر واتساب">
-                    <i class="fa-brands fa-whatsapp text-base"></i>
-                    <span>تقرير واتساب</span>
+                <button onclick="openWhatsAppModal()" class="bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-white font-bold text-xs px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl shadow flex items-center gap-1 sm:gap-1.5 transition" title="مشاركة التقرير عبر واتساب">
+                    <i class="fa-brands fa-whatsapp text-sm sm:text-base"></i>
+                    <span class="hidden sm:inline">تقرير واتساب</span>
+                    <span class="sm:hidden text-[11px]">تقرير</span>
                 </button>
-                <button onclick="openBackupModal()" class="bg-white/15 hover:bg-white/25 active:scale-95 text-white text-xs px-2.5 py-2 rounded-xl border border-white/20 flex items-center gap-1.5 transition" title="إعدادات الشهرية والنسخ الاحتياطي">
+                <button onclick="openBackupModal()" class="bg-white/15 hover:bg-white/25 active:scale-95 text-white text-xs px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-xl border border-white/20 flex items-center gap-1 sm:gap-1.5 transition" title="إعدادات الشهرية والنسخ الاحتياطي">
                     <i class="fa-solid fa-sliders text-sm"></i>
-                    <span class="hidden sm:inline font-bold">الإعدادات</span>
+                    <span class="hidden md:inline font-bold">الإعدادات</span>
                 </button>
             </div>
         </div>
@@ -576,22 +595,25 @@
                 </div>
 
                 <!-- Section 2: GitHub Pages PWA Package (manifest.json & sw.js) -->
-                <div class="bg-teal-50/70 p-3.5 rounded-2xl border border-teal-200 space-y-2.5">
-                    <h4 class="font-bold text-teal-900 flex items-center gap-1.5">
-                        <i class="fa-brands fa-github text-base"></i>
-                        <span>ملفات الرفع على GitHub Pages (PWA)</span>
-                    </h4>
+                <div class="bg-teal-50/80 p-3.5 rounded-2xl border border-teal-200 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-teal-900 flex items-center gap-1.5">
+                            <i class="fa-solid fa-mobile-screen-button text-teal-600"></i>
+                            <span>حزمة تثبيت الهاتف (PWA & الأيقونات)</span>
+                        </h4>
+                        <span class="text-[10px] bg-teal-200/80 text-teal-900 font-bold px-2 py-0.5 rounded-lg">جاهزة ومثبتة بالمشروع</span>
+                    </div>
                     <p class="text-teal-800 text-[11px] leading-relaxed">
-                        التطبيق يعمل حالياً كـ PWA تلقائياً، ولرفعه على GitHub Pages بملفات منفصلة قياسية، اضغط أدناه لتحميل <code class="bg-white px-1 rounded">manifest.json</code> و <code class="bg-white px-1 rounded">sw.js</code> بضغطة زر:
+                        ملفات التثبيت الرسمية (<code class="bg-white px-1 rounded">manifest.json</code> و <code class="bg-white px-1 rounded">sw.js</code> وجميع أيقونات الموبايل) منشأة الآن مباشرة داخل مجلد المشروع وجاهزة للعمل الفوري على الهاتف أو الرفع إلى GitHub Pages:
                     </p>
                     <div class="grid grid-cols-2 gap-2">
-                        <button onclick="downloadManifestFile()" class="bg-white hover:bg-teal-100 text-teal-900 border border-teal-300 font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5">
+                        <button onclick="downloadManifestFile()" class="bg-white hover:bg-teal-100 text-teal-900 border border-teal-300 font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition">
                             <i class="fa-solid fa-file-code text-teal-600"></i>
-                            <span>تحميل manifest.json</span>
+                            <span>تنزيل manifest.json</span>
                         </button>
-                        <button onclick="downloadServiceWorkerFile()" class="bg-white hover:bg-teal-100 text-teal-900 border border-teal-300 font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5">
+                        <button onclick="downloadServiceWorkerFile()" class="bg-white hover:bg-teal-100 text-teal-900 border border-teal-300 font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition">
                             <i class="fa-solid fa-gears text-teal-600"></i>
-                            <span>تحميل sw.js</span>
+                            <span>تنزيل sw.js</span>
                         </button>
                     </div>
                 </div>
@@ -705,6 +727,103 @@
             <div class="flex items-center gap-2">
                 <button id="confirmModalYesBtn" type="button" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs transition">نعم، متأكد</button>
                 <button type="button" onclick="closeModal('confirmModal')" class="px-4 py-2.5 bg-slate-100 text-slate-600 font-bold rounded-xl text-xs">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Install App on Phone (iOS / Android / Desktop) -->
+    <div id="installGuideModal" class="fixed inset-0 z-50 hidden items-end sm:items-center justify-center modal-backdrop p-0 sm:p-4">
+        <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-5 shadow-2xl bottom-sheet max-h-[92vh] flex flex-col text-slate-800">
+            <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-3 sm:hidden"></div>
+            
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <img src="./favicon.svg" alt="المضيافة" class="w-7 h-7 rounded-lg">
+                    <h3 class="font-bold text-base text-slate-800">تثبيت التطبيق على الهاتف</h3>
+                </div>
+                <button onclick="closeModal('installGuideModal')" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="mt-4 space-y-4 overflow-y-auto flex-1">
+                <!-- App Banner -->
+                <div class="bg-gradient-to-r from-teal-800 via-teal-700 to-emerald-700 text-white p-4 rounded-2xl flex items-center gap-3.5 shadow-sm">
+                    <img src="./icon-192.png" alt="أيقونة تطبيق المضيافة" class="w-14 h-14 rounded-2xl shadow-md border-2 border-white/20 shrink-0">
+                    <div>
+                        <h4 class="font-bold text-sm">دفتر المضيافة الذكي</h4>
+                        <p class="text-[11px] text-teal-100 mt-0.5">تطبيق PWA أصيل يعمل بدون نت ومستقر على شاشة هاتفك</p>
+                    </div>
+                </div>
+
+                <!-- Platform Tabs -->
+                <div class="flex rounded-xl bg-slate-100 p-1 font-bold text-xs">
+                    <button id="tabAndroidBtn" onclick="switchInstallTab('android')" class="flex-1 py-2 rounded-lg transition bg-white text-teal-700 shadow-sm flex items-center justify-center gap-1.5">
+                        <i class="fa-brands fa-android text-emerald-600 text-sm"></i>
+                        <span>أندرويد (Android)</span>
+                    </button>
+                    <button id="tabIosBtn" onclick="switchInstallTab('ios')" class="flex-1 py-2 rounded-lg transition text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5">
+                        <i class="fa-brands fa-apple text-slate-700 text-sm"></i>
+                        <span>آيفون (iPhone / iPad)</span>
+                    </button>
+                </div>
+
+                <!-- Android Content -->
+                <div id="installTabAndroid" class="space-y-3 text-xs">
+                    <div id="androidDirectInstallBox">
+                        <button onclick="triggerNativeInstallPrompt()" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold py-3 px-4 rounded-xl shadow flex items-center justify-center gap-2 transition active:scale-95 text-sm">
+                            <i class="fa-solid fa-download text-base"></i>
+                            <span>تثبيت التطبيق الآن بضغطة زر</span>
+                        </button>
+                    </div>
+
+                    <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-2.5">
+                        <div class="font-bold text-slate-700 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-info text-teal-600"></i>
+                            <span>طريقة التثبيت اليدوي من المتصفح (Chrome / Samsung):</span>
+                        </div>
+                        <ol class="space-y-2 text-slate-600 text-[11px] pr-2 list-decimal list-inside">
+                            <li>اضغط على قائمة المتصفح <strong>(الثلاث نقاط ⋮)</strong> في الزاوية العلوية أو السفلية.</li>
+                            <li>اضغط على <strong>"تثبيت التطبيق" (Install App)</strong> أو <strong>"إضافة إلى الشاشة الرئيسية" (Add to Home Screen)</strong>.</li>
+                            <li>أكّد بالضغط على <strong>"تثبيت"</strong> لتظهر أيقونة التطبيق على هاتفك مثل تطبيقات المتجر الرسمية.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- iOS Content -->
+                <div id="installTabIos" class="hidden space-y-3 text-xs">
+                    <div class="bg-sky-50 border border-sky-200 rounded-2xl p-3.5 space-y-2.5">
+                        <div class="font-bold text-sky-900 flex items-center gap-1.5">
+                            <i class="fa-brands fa-safari text-sky-600 text-sm"></i>
+                            <span>طريقة التثبيت على Safari (آيفون وآيباد):</span>
+                        </div>
+                        <div class="space-y-2 text-slate-700 text-[11px]">
+                            <div class="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-sky-100">
+                                <span class="w-5 h-5 rounded-full bg-sky-600 text-white font-bold flex items-center justify-center shrink-0 text-[10px]">1</span>
+                                <div>اضغط على زر المشاركة <strong>(Share)</strong> في شريط سفاري السفلي <i class="fa-solid fa-arrow-up-from-bracket text-sky-600 font-bold mx-1"></i>.</div>
+                            </div>
+                            <div class="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-sky-100">
+                                <span class="w-5 h-5 rounded-full bg-sky-600 text-white font-bold flex items-center justify-center shrink-0 text-[10px]">2</span>
+                                <div>مرر الخيارات لأسفل واضغط على <strong>"إضافة إلى الشاشة الرئيسية" (Add to Home Screen)</strong> <i class="fa-regular fa-square-plus text-slate-700 font-bold mx-1"></i>.</div>
+                            </div>
+                            <div class="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-sky-100">
+                                <span class="w-5 h-5 rounded-full bg-sky-600 text-white font-bold flex items-center justify-center shrink-0 text-[10px]">3</span>
+                                <div>اضغط على كلمة <strong>"إضافة" (Add)</strong> في أعلى الزاوية؛ وسيظهر التطبيق بأيقونته الرسمية على شاشتك.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 flex items-center gap-2 text-emerald-800 text-[11px]">
+                    <i class="fa-solid fa-shield-heart text-emerald-600 text-sm shrink-0"></i>
+                    <span>بعد التثبيت، سيعمل التطبيق كاملاً حتى بدون شبكة إنترنت وتبقى بياناتك محفوظة ومؤمّنة.</span>
+                </div>
+            </div>
+
+            <div class="pt-3 mt-2 border-t border-slate-100">
+                <button type="button" onclick="closeModal('installGuideModal')" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-xl text-xs transition">
+                    فهمت، حسناً
+                </button>
             </div>
         </div>
     </div>
@@ -1776,33 +1895,73 @@
 
         function getManifestJsonObject() {
             return {
-                name: appState.title || "نظام إدارة المضيافة الذكي",
+                id: "madyafa-pwa-app",
+                name: appState.title || "دفتر المضيافة الذكي | متابعة التحصيل",
                 short_name: "المضيافة",
-                description: "تطبيق متابعة تحصيل المضيافة والالتزامات المشتركة أوفلاين",
+                description: "تطبيق إدارة ومتابعة تحصيل اشتراكات والتزامات المضيافة الذكي أوفلاين بالكامل",
                 start_url: "./index.html",
+                scope: "./",
                 display: "standalone",
-                background_color: "#f1f5f9",
+                background_color: "#042f2e",
                 theme_color: "#0f766e",
                 orientation: "portrait-primary",
                 dir: "rtl",
                 lang: "ar",
                 icons: [
                     {
-                        src: "https://cdn-icons-png.flaticon.com/512/2942/2942813.png",
+                        src: "./favicon-16x16.png",
+                        sizes: "16x16",
+                        type: "image/png"
+                    },
+                    {
+                        src: "./favicon-32x32.png",
+                        sizes: "32x32",
+                        type: "image/png"
+                    },
+                    {
+                        src: "./icon-192.png",
+                        sizes: "192x192",
+                        type: "image/png",
+                        purpose: "any"
+                    },
+                    {
+                        src: "./icon-maskable-192.png",
+                        sizes: "192x192",
+                        type: "image/png",
+                        purpose: "maskable"
+                    },
+                    {
+                        src: "./icon-512.png",
                         sizes: "512x512",
                         type: "image/png",
-                        purpose: "any maskable"
+                        purpose: "any"
+                    },
+                    {
+                        src: "./icon-maskable-512.png",
+                        sizes: "512x512",
+                        type: "image/png",
+                        purpose: "maskable"
                     }
-                ]
+                ],
+                categories: ["finance", "productivity", "utilities"]
             };
         }
 
         function getServiceWorkerCodeString() {
-            return `const CACHE_NAME = 'madyafa-pwa-cache-v1';
-const ASSETS_TO_CACHE = [
+            return `const CACHE_NAME = 'madyafa-pwa-cache-v2';
+const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
+  './favicon.ico',
+  './favicon.svg',
+  './favicon-32x32.png',
+  './favicon-16x16.png',
+  './apple-touch-icon.png',
+  './icon-192.png',
+  './icon-512.png',
+  './icon-maskable-192.png',
+  './icon-maskable-512.png',
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css'
@@ -1810,7 +1969,7 @@ const ASSETS_TO_CACHE = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS).catch(() => {}))
   );
   self.skipWaiting();
 });
@@ -1825,6 +1984,7 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       return cachedResponse || fetch(event.request).catch(() => caches.match('./index.html'));
@@ -1837,53 +1997,115 @@ self.addEventListener('fetch', (event) => {
             const str = JSON.stringify(getManifestJsonObject(), null, 2);
             const blob = new Blob([str], { type: 'application/json;charset=utf-8' });
             triggerFileDownload(blob, 'manifest.json');
-            showToast('تم تحميل ملف manifest.json');
+            showToast('تم تحميل ملف manifest.json بنجاح');
         }
 
         function downloadServiceWorkerFile() {
             const str = getServiceWorkerCodeString();
             const blob = new Blob([str], { type: 'application/javascript;charset=utf-8' });
             triggerFileDownload(blob, 'sw.js');
-            showToast('تم تحميل ملف sw.js');
+            showToast('تم تحميل ملف sw.js بنجاح');
+        }
+
+        function isAppInstalled() {
+            return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        }
+
+        function updateInstallButtonUI() {
+            const btn = document.getElementById('installPwaBtn');
+            if (!btn) return;
+            if (isAppInstalled()) {
+                btn.className = 'bg-white/15 text-white font-bold text-xs px-2.5 py-2 rounded-xl border border-white/20 flex items-center gap-1.5 transition';
+                btn.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-300"></i><span class="hidden sm:inline">التطبيق مثبت</span>';
+            } else {
+                btn.className = 'bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-extrabold text-xs px-2.5 py-2 rounded-xl shadow flex items-center gap-1.5 transition';
+                btn.innerHTML = '<i class="fa-solid fa-mobile-screen-button text-amber-950 text-sm"></i><span>تثبيت التطبيق</span>';
+            }
         }
 
         function setupDynamicPWA() {
-            // 1. Dynamically inject manifest link so the single file works immediately as PWA
-            const manifestObj = getManifestJsonObject();
-            const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: 'application/json' });
-            const manifestUrl = URL.createObjectURL(manifestBlob);
-            const link = document.createElement('link');
-            link.rel = 'manifest';
-            link.href = manifestUrl;
-            document.head.appendChild(link);
-
-            // 2. Register ./sw.js if hosted on GitHub Pages
-            if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-                navigator.serviceWorker.register('./sw.js').catch(() => {
-                    // Silent fallback when previewed in sandbox without external sw.js file
+            // Register ./sw.js on localhost or https
+            if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+                navigator.serviceWorker.register('./sw.js').then((reg) => {
+                    console.log('PWA ServiceWorker registered:', reg.scope);
+                }).catch((err) => {
+                    console.warn('PWA ServiceWorker registration notice:', err);
                 });
             }
 
-            // 3. Handle PWA Install Prompt on Android/Desktop Chrome
+            // Handle PWA Install Prompt on Android/Desktop Chrome
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 deferredInstallPrompt = e;
-                document.getElementById('installPwaBtn').classList.remove('hidden');
+                updateInstallButtonUI();
             });
+
+            // Handle post-installation event
+            window.addEventListener('appinstalled', () => {
+                deferredInstallPrompt = null;
+                updateInstallButtonUI();
+                showToast('تم تثبيت تطبيق المضيافة بنجاح على هاتفك 🎉');
+            });
+
+            updateInstallButtonUI();
         }
 
         async function triggerPwaInstall() {
-            if (!deferredInstallPrompt) {
-                showToast('لتثبيت التطبيق: اضغط على قائمة المتصفح (⋮) ثم "إضافة إلى الشاشة الرئيسية"', 'teal');
+            if (isAppInstalled()) {
+                showToast('التطبيق مثبت بالفعل على جهازك ويعمل أوفلاين بالكامل ✅');
                 return;
             }
-            deferredInstallPrompt.prompt();
-            const { outcome } = await deferredInstallPrompt.userChoice;
-            if (outcome === 'accepted') {
-                document.getElementById('installPwaBtn').classList.add('hidden');
-                showToast('تم تثبيت تطبيق المضيافة على هاتفك بنجاح 🎉');
+
+            if (deferredInstallPrompt) {
+                deferredInstallPrompt.prompt();
+                const { outcome } = await deferredInstallPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    showToast('تم قبول تثبيت تطبيق المضيافة 🎉');
+                    deferredInstallPrompt = null;
+                    updateInstallButtonUI();
+                }
+                return;
             }
-            deferredInstallPrompt = null;
+
+            // Detect mobile platform and open the illustrated install guide
+            const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+            switchInstallTab(isIOS ? 'ios' : 'android');
+            openModal('installGuideModal');
+        }
+
+        async function triggerNativeInstallPrompt() {
+            if (deferredInstallPrompt) {
+                closeModal('installGuideModal');
+                deferredInstallPrompt.prompt();
+                const { outcome } = await deferredInstallPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    showToast('تم تثبيت تطبيق المضيافة بنجاح 🎉');
+                    deferredInstallPrompt = null;
+                    updateInstallButtonUI();
+                }
+            } else {
+                showToast('استخدم قائمة المتصفح (⋮) ثم اضغط "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"', 'amber');
+            }
+        }
+
+        function switchInstallTab(platform) {
+            const tabAndroidBtn = document.getElementById('tabAndroidBtn');
+            const tabIosBtn = document.getElementById('tabIosBtn');
+            const tabAndroid = document.getElementById('installTabAndroid');
+            const tabIos = document.getElementById('installTabIos');
+            if (!tabAndroidBtn || !tabIosBtn) return;
+
+            if (platform === 'ios') {
+                tabIosBtn.className = 'flex-1 py-2 rounded-lg transition bg-white text-teal-700 shadow-sm flex items-center justify-center gap-1.5';
+                tabAndroidBtn.className = 'flex-1 py-2 rounded-lg transition text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5';
+                tabIos.classList.remove('hidden');
+                tabAndroid.classList.add('hidden');
+            } else {
+                tabAndroidBtn.className = 'flex-1 py-2 rounded-lg transition bg-white text-teal-700 shadow-sm flex items-center justify-center gap-1.5';
+                tabIosBtn.className = 'flex-1 py-2 rounded-lg transition text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5';
+                tabAndroid.classList.remove('hidden');
+                tabIos.classList.add('hidden');
+            }
         }
 
         function openModal(modalId) {

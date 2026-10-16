@@ -1,0 +1,205 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background Teal Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#042f2e" />
+      <stop offset="45%" stop-color="#0f766e" />
+      <stop offset="100%" stop-color="#115e59" />
+    </linearGradient>
+
+    <!-- Radial Glow for lighting effect -->
+    <radialGradient id="topGlow" cx="50%" cy="15%" r="65%">
+      <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.35" />
+      <stop offset="60%" stop-color="#0f766e" stop-opacity="0.0" />
+    </radialGradient>
+
+    <!-- Luxury Gold Gradient -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="30%" stop-color="#f59e0b" />
+      <stop offset="70%" stop-color="#d97706" />
+      <stop offset="100%" stop-color="#fbbf24" />
+    </linearGradient>
+
+    <linearGradient id="goldBorderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fde047" />
+      <stop offset="50%" stop-color="#d97706" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+
+    <!-- Card Clean White/Slate Gradient -->
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#f1f5f9" />
+    </linearGradient>
+
+    <!-- Emerald Badge Gradient -->
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+
+    <!-- Drop Shadows -->
+    <filter id="dropShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#021a19" flood-opacity="0.55" />
+    </filter>
+
+    <filter id="goldGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+
+    <filter id="elementShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#022c22" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- Background Base -->
+  <rect x="16" y="16" width="480" height="480" rx="110" fill="url(#bgGrad)" filter="url(#dropShadow)" />
+  <rect x="22" y="22" width="468" height="468" rx="104" fill="none" stroke="url(#goldBorderGrad)" stroke-width="3" opacity="0.45" />
+
+  <!-- Top Radial Lighting Sheen -->
+  <rect width="512" height="512" fill="url(#topGlow)" rx="110" style="mix-blend-mode: screen;" />
+
+  <!-- Main Artwork Container (Scalable for maskable) -->
+  <g id="mainArtwork" >
+    <!-- Subtle Islamic Geometric Pattern Backdrop in Center -->
+    <g opacity="0.08" stroke="#ffffff" stroke-width="1.5" fill="none">
+      <circle cx="256" cy="256" r="140" />
+      <circle cx="256" cy="256" r="95" />
+      <polygon points="256,120 286,215 382,215 304,272 334,368 256,310 178,368 208,272 130,215 226,215" />
+      <polygon points="256,140 280,216 357,216 295,262 318,338 256,292 194,338 217,262 155,216 232,216" />
+    </g>
+
+    <!-- Traditional Arabic Gate / Archway (بوابة وقوس المضيافة العريق) -->
+    <g filter="url(#goldGlow)">
+      <!-- Outer Decorative Arch Contour -->
+      <path d="M 120 405
+               L 120 250
+               C 120 180, 190 145, 256 95
+               C 322 145, 392 180, 392 250
+               L 392 405"
+            fill="none"
+            stroke="url(#goldGrad)"
+            stroke-width="10"
+            stroke-linecap="round" />
+
+      <!-- Inner Thin Arch Contour -->
+      <path d="M 136 405
+               L 136 255
+               C 136 195, 200 162, 256 120
+               C 312 162, 376 195, 376 255
+               L 376 405"
+            fill="none"
+            stroke="url(#goldGrad)"
+            stroke-width="2.5"
+            opacity="0.8"
+            stroke-linecap="round" />
+
+      <!-- Crown Islamic Finial / Crescent & Star at Arch Apex -->
+      <circle cx="256" cy="74" r="8" fill="url(#goldGrad)" />
+      <path d="M 256 50 L 258 64 L 256 66 L 254 64 Z" fill="url(#goldGrad)" />
+      <path d="M 256 84 L 256 95" stroke="url(#goldGrad)" stroke-width="4" stroke-linecap="round" />
+    </g>
+
+    <!-- Arch Base / Foundation Pedestal -->
+    <rect x="100" y="405" width="312" height="12" rx="6" fill="url(#goldGrad)" filter="url(#elementShadow)" />
+
+    <!-- Smart Ledger / Notebook (دفتر المضيافة الذكي) Floating Centered Inside Arch -->
+    <g filter="url(#elementShadow)">
+      <!-- Ledger Shadow Base -->
+      <rect x="145" y="165" width="222" height="230" rx="20" fill="#022c22" opacity="0.4" />
+
+      <!-- Ledger Main Sheet -->
+      <rect x="145" y="158" width="222" height="232" rx="20" fill="url(#cardGrad)" stroke="#cbd5e1" stroke-width="2" />
+
+      <!-- Left Binding Spine (دفتر بغلاف زمردي أنيق) -->
+      <path d="M 145 178
+               A 20 20 0 0 1 165 158
+               L 175 158
+               L 175 390
+               L 165 390
+               A 20 20 0 0 1 145 370 Z"
+            fill="#0f766e" />
+      <line x1="175" y1="158" x2="175" y2="390" stroke="#f59e0b" stroke-width="3" />
+
+      <!-- Golden Ring Binder Rings -->
+      <circle cx="160" cy="195" r="5" fill="url(#goldGrad)" />
+      <circle cx="160" cy="245" r="5" fill="url(#goldGrad)" />
+      <circle cx="160" cy="295" r="5" fill="url(#goldGrad)" />
+      <circle cx="160" cy="345" r="5" fill="url(#goldGrad)" />
+
+      <!-- Top Header Bar of Ledger -->
+      <rect x="186" y="174" width="166" height="26" rx="8" fill="#0f766e" />
+      <!-- Header lines -->
+      <rect x="195" y="182" width="70" height="4" rx="2" fill="#5eead4" />
+      <rect x="195" y="190" width="40" height="3" rx="1.5" fill="#99f6e4" />
+      <circle cx="338" cy="187" r="5" fill="url(#goldGrad)" />
+
+      <!-- Ledger Content Rows: Tracking Payments & Hospitality Members -->
+      <!-- Row 1 -->
+      <g>
+        <rect x="186" y="212" width="166" height="34" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2" />
+        <circle cx="203" cy="229" r="8" fill="#10b981" />
+        <path d="M 199 229 L 202 232 L 208 226" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+        <rect x="220" y="224" width="75" height="5" rx="2.5" fill="#334155" />
+        <rect x="220" y="233" width="45" height="3" rx="1.5" fill="#94a3b8" />
+        <rect x="312" y="224" width="30" height="9" rx="4.5" fill="#ccfbf1" />
+      </g>
+
+      <!-- Row 2 -->
+      <g>
+        <rect x="186" y="253" width="166" height="34" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2" />
+        <circle cx="203" cy="270" r="8" fill="#10b981" />
+        <path d="M 199 270 L 202 273 L 208 267" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+        <rect x="220" y="265" width="85" height="5" rx="2.5" fill="#334155" />
+        <rect x="220" y="274" width="50" height="3" rx="1.5" fill="#94a3b8" />
+        <rect x="312" y="265" width="30" height="9" rx="4.5" fill="#ccfbf1" />
+      </g>
+
+      <!-- Row 3 -->
+      <g>
+        <rect x="186" y="294" width="166" height="34" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2" />
+        <circle cx="203" cy="311" r="8" fill="#f59e0b" />
+        <path d="M 199 311 L 202 314 L 208 308" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+        <rect x="220" y="306" width="65" height="5" rx="2.5" fill="#334155" />
+        <rect x="220" y="315" width="35" height="3" rx="1.5" fill="#94a3b8" />
+        <rect x="312" y="306" width="30" height="9" rx="4.5" fill="#fef3c7" />
+      </g>
+    </g>
+
+    <!-- Prominent Golden Medallion / Official Seal Emblem at Bottom Center of Ledger -->
+    <g filter="url(#goldGlow)">
+      <!-- Outer Radiant Ring -->
+      <circle cx="256" cy="366" r="38" fill="url(#goldGrad)" stroke="#ffffff" stroke-width="2.5" />
+      <circle cx="256" cy="366" r="32" fill="#0f766e" stroke="url(#goldGrad)" stroke-width="2" />
+
+      <!-- Center Icon: Golden Stylized Arabic Letter "م" / Mosque Dome & Check -->
+      <!-- A sparkling gold stylized "م" or hospitality coffee pot / dome -->
+      <path d="M 248 376
+               L 248 368
+               C 248 358, 258 354, 266 358
+               C 272 362, 272 370, 265 373
+               C 259 375, 252 374, 252 374"
+            fill="none"
+            stroke="url(#goldGrad)"
+            stroke-width="3.5"
+            stroke-linecap="round" />
+      <!-- Dot or accent for Meem / Madyafa -->
+      <circle cx="260" cy="365" r="3" fill="#fde047" />
+      <path d="M 243 366 L 247 370 L 255 361" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+    </g>
+
+    <!-- Sparkling Golden Stars around the Arch -->
+    <g fill="url(#goldGrad)">
+      <!-- Star Top-Left -->
+      <path d="M 160 140 Q 160 148 152 148 Q 160 148 160 156 Q 160 148 168 148 Q 160 148 160 140 Z" />
+      <!-- Star Top-Right -->
+      <path d="M 352 140 Q 352 148 344 148 Q 352 148 352 156 Q 352 148 360 148 Q 352 148 352 140 Z" />
+      <!-- Small Sparkle Left -->
+      <circle cx="106" cy="270" r="3.5" />
+      <!-- Small Sparkle Right -->
+      <circle cx="406" cy="270" r="3.5" />
+    </g>
+  </g>
+</svg>
