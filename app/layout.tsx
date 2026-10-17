@@ -41,6 +41,41 @@ export default function RootLayout({
     <html lang="ar" dir="rtl" className="dark">
       <head>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                function isExtensionError(msg, stack, file) {
+                  return (
+                    (file && (file.indexOf('chrome-extension://') !== -1 || file.indexOf('moz-extension://') !== -1)) ||
+                    (stack && (stack.indexOf('chrome-extension://') !== -1 || stack.indexOf('moz-extension://') !== -1)) ||
+                    (msg && (msg.indexOf('chrome: call method') !== -1 || msg.indexOf('Window message') !== -1))
+                  );
+                }
+                if (typeof window !== 'undefined') {
+                  window.addEventListener('unhandledrejection', function(event) {
+                    var r = event.reason;
+                    var msg = r ? (r.message || String(r)) : '';
+                    var stack = r ? (r.stack || '') : '';
+                    if (isExtensionError(msg, stack, '')) {
+                      event.stopImmediatePropagation();
+                      event.preventDefault();
+                    }
+                  }, true);
+                  window.addEventListener('error', function(event) {
+                    var msg = event.message || '';
+                    var file = event.filename || '';
+                    var stack = event.error ? (event.error.stack || '') : '';
+                    if (isExtensionError(msg, stack, file)) {
+                      event.stopImmediatePropagation();
+                      event.preventDefault();
+                    }
+                  }, true);
+                }
+              })();
+            `,
+          }}
+        />
       </head>
       <body className="bg-night-950 text-slate-100 min-h-screen flex flex-col selection:bg-teal-600 selection:text-white">
         {children}
