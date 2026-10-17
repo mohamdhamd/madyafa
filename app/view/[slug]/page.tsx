@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import Footer from "@/components/layout/Footer";
 
 interface PublicData {
   workspace: {
@@ -314,9 +315,7 @@ export default function PublicViewPage() {
         </div>
       </main>
 
-      <footer className="text-center py-3 text-[11px] text-slate-500 border-t border-slate-800/80">
-        تم توليد كشف الحساب آلياً بواسطة دفتر المضيافة الذكي • نظام شفاف وآمن 🌟
-      </footer>
+      <Footer />
     </div>
   );
 }

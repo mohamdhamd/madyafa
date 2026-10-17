@@ -11,6 +11,7 @@ export interface LocalWorkspace {
     currency: string;
     publicSlug: string;
     publicPin?: string;
+    autoColumnMode?: "on_complete" | "on_first_check" | "manual";
   };
   createdAt?: string;
   updatedAt?: string;

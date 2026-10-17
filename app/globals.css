@@ -43,6 +43,15 @@ body {
   background: #0f766e;
 }
 
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+}
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
 /* Table Scroll Container */
 .table-scroll-container {
   overflow-x: auto;

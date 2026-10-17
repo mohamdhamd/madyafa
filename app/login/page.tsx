@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Footer from "@/components/layout/Footer";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -45,11 +46,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-night-950 text-slate-100 flex flex-col justify-center items-center px-4 py-8 relative selection:bg-teal-600 selection:text-white">
+    <div className="min-h-screen bg-night-950 text-slate-100 flex flex-col justify-between items-center relative selection:bg-teal-600 selection:text-white">
       {/* Decorative gradient glow */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-teal-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div className="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl relative z-10">
+      <div className="w-full flex-1 flex items-center justify-center px-4 py-8 relative z-10">
+        <div className="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl relative z-10">
         {/* Brand Header */}
         <div className="text-center mb-6">
           <div className="w-16 h-16 rounded-2xl bg-teal-950/80 border border-teal-500/30 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-teal-950/60">
@@ -146,5 +148,10 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  );
+
+    <div className="w-full relative z-10">
+      <Footer />
+    </div>
+  </div>
+);
 }

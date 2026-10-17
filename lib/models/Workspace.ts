@@ -6,6 +6,7 @@ export interface IWorkspaceSettings {
   currency: string;
   publicSlug: string;
   publicPin?: string;
+  autoColumnMode?: "on_complete" | "on_first_check" | "manual";
 }
 
 export interface IWorkspace extends Document {
@@ -30,6 +31,11 @@ const WorkspaceSchema = new Schema<IWorkspace>(
       currency: { type: String, default: "ج.م" },
       publicSlug: { type: String, required: true, unique: true, index: true },
       publicPin: { type: String, default: "" },
+      autoColumnMode: {
+        type: String,
+        enum: ["on_complete", "on_first_check", "manual"],
+        default: "on_complete",
+      },
     },
   },
   { timestamps: true }

@@ -9,6 +9,8 @@ interface MadyafaTableProps {
   payments: Record<string, LocalPayment>;
   defaultAmount: number;
   currency?: string;
+  autoColumnMode?: "on_complete" | "on_first_check" | "manual";
+  onCycleAutoMode?: () => void;
   onToggleCell: (memberId: string, colId: string) => void;
   onOpenCellDetail: (memberId: string, colId: string) => void;
   onOpenMemberModal: (member?: LocalMember) => void;
@@ -27,6 +29,8 @@ export default function MadyafaTable({
   payments,
   defaultAmount,
   currency = "ج.م",
+  autoColumnMode = "on_complete",
+  onCycleAutoMode,
   onToggleCell,
   onOpenCellDetail,
   onOpenMemberModal,
@@ -274,18 +278,19 @@ export default function MadyafaTable({
   });
 
   return (
-    <div className="flex-1 flex flex-col max-w-7xl w-full mx-auto px-3 sm:px-4 py-2.5">
-      {/* Search & Actions Bar */}
-      <div className="bg-slate-900/95 border border-slate-800 rounded-2xl p-2.5 shadow-lg mb-2 flex flex-col gap-2">
+    <div className="flex-1 flex flex-col max-w-7xl w-full mx-auto px-2.5 sm:px-4 py-2">
+      {/* Search & Actions Bar - Ultra Compact 2 Rows */}
+      <div className="bg-slate-900/95 border border-slate-800 rounded-2xl p-2 sm:p-2.5 shadow-lg mb-2 flex flex-col gap-2">
+        {/* Row 1: Search + Add Member + JSON + WhatsApp */}
         <div className="flex items-center gap-1.5">
-          <div className="relative flex-1">
+          <div className="relative flex-1 min-w-[120px]">
             <i className="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="ابحث باسم العضو أو الملاحظة..."
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl pr-8 pl-7 py-2 text-xs font-semibold text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+              placeholder="بحث بالاسم أو الملاحظة..."
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl pr-8 pl-7 py-1.5 sm:py-2 text-xs font-semibold text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
             />
             {searchQuery && (
               <button
@@ -299,25 +304,25 @@ export default function MadyafaTable({
 
           <button
             onClick={() => onOpenMemberModal()}
-            className="bg-gradient-to-l from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 active:scale-95 text-white font-extrabold text-xs px-3 py-2 rounded-xl shadow-md shadow-teal-950 flex items-center gap-1.5 shrink-0 transition"
+            className="bg-gradient-to-l from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 active:scale-95 text-white font-extrabold text-xs px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl shadow-md shadow-teal-950 flex items-center gap-1.5 shrink-0 transition"
           >
             <i className="fa-solid fa-user-plus text-xs"></i>
-            <span>إضافة عضو</span>
+            <span className="hidden xs:inline sm:inline">إضافة عضو</span>
+            <span className="xs:hidden sm:hidden">+ عضو</span>
           </button>
 
           <button
             onClick={onOpenBulkJsonModal}
-            className="bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 font-bold text-xs px-2.5 py-2 rounded-xl border border-slate-700/80 shadow flex items-center gap-1.5 shrink-0 transition"
+            className="bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 font-bold text-xs px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-xl border border-slate-700/80 shadow flex items-center gap-1 shrink-0 transition"
             title="إضافة أسماء دفعة واحدة بصيغة JSON"
           >
             <i className="fa-solid fa-code text-amber-400 text-xs"></i>
-            <span className="hidden sm:inline">إضافة JSON</span>
-            <span className="sm:hidden">JSON</span>
+            <span className="hidden sm:inline">JSON</span>
           </button>
 
           <button
             onClick={onOpenWhatsAppModal}
-            className="bg-emerald-950 hover:bg-emerald-900 border border-emerald-800/80 text-emerald-300 font-bold text-xs px-2.5 py-2 rounded-xl shadow flex items-center gap-1.5 shrink-0 transition active:scale-95"
+            className="bg-emerald-950 hover:bg-emerald-900 border border-emerald-800/80 text-emerald-300 font-bold text-xs px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-xl shadow flex items-center gap-1 shrink-0 transition active:scale-95"
             title="مشاركة تقرير واتساب"
           >
             <i className="fa-brands fa-whatsapp text-sm text-emerald-400"></i>
@@ -325,12 +330,13 @@ export default function MadyafaTable({
           </button>
         </div>
 
-        {/* Filter Pills and Add Column */}
+        {/* Row 2: Filter Pills + Navigation Scroll Arrows + Add Column / Archive */}
         <div className="flex items-center justify-between gap-1.5 pt-0.5 overflow-x-auto no-scrollbar">
+          {/* Filters */}
           <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={() => setFilterType("all")}
-              className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition ${
+              className={`px-2 py-1 rounded-lg text-xs font-bold transition ${
                 filterType === "all" ? "bg-slate-700 text-white" : "bg-slate-950 text-slate-400 hover:bg-slate-800"
               }`}
             >
@@ -338,39 +344,76 @@ export default function MadyafaTable({
             </button>
             <button
               onClick={() => setFilterType("unpaid")}
-              className={`px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition ${
+              className={`px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition ${
                 filterType === "unpaid" ? "bg-rose-950 text-rose-300 border border-rose-800" : "bg-slate-950 text-slate-400 hover:bg-slate-800"
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
               <span>لم يدفعوا</span>
             </button>
             <button
               onClick={() => setFilterType("paid")}
-              className={`px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition ${
+              className={`px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition ${
                 filterType === "paid" ? "bg-emerald-950 text-emerald-300 border border-emerald-800" : "bg-slate-950 text-slate-400 hover:bg-slate-800"
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
               <span>دفعوا</span>
             </button>
           </div>
 
+          {/* Integrated Horizontal Scroll Buttons */}
+          <div className="flex items-center gap-0.5 shrink-0 bg-slate-950/80 p-0.5 rounded-xl border border-slate-800">
+            <button
+              type="button"
+              onClick={() => scrollToEdge("start")}
+              className="w-6 h-6 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 flex items-center justify-center active:scale-90 transition text-[10px]"
+              title="الرجوع للبداية (أسماء الأعضاء)"
+            >
+              <i className="fa-solid fa-angles-right"></i>
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollHorizontally("right")}
+              className="w-6 h-6 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 flex items-center justify-center active:scale-90 transition text-[10px]"
+              title="تمرير لليمين"
+            >
+              <i className="fa-solid fa-chevron-right"></i>
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollHorizontally("left")}
+              className="w-6 h-6 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 flex items-center justify-center active:scale-90 transition text-[10px]"
+              title="تمرير لليسار"
+            >
+              <i className="fa-solid fa-chevron-left"></i>
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToEdge("end")}
+              className="w-6 h-6 rounded-lg hover:bg-slate-800 text-teal-400 flex items-center justify-center active:scale-90 transition text-[10px]"
+              title="الذهاب لآخر عمود"
+            >
+              <i className="fa-solid fa-angles-left"></i>
+            </button>
+          </div>
+
+          {/* Column Actions */}
           <div className="flex items-center gap-1 shrink-0">
             {onOpenArchivedModal && (
               <button
                 onClick={onOpenArchivedModal}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border flex items-center gap-1.5 transition ${
+                className={`px-2 py-1 rounded-lg text-xs font-bold border flex items-center gap-1 transition ${
                   archivedCount > 0
                     ? "bg-amber-950/70 text-amber-300 border-amber-800/70 hover:bg-amber-900/60 shadow-sm"
-                    : "bg-slate-900/90 text-slate-400 border-slate-800 hover:bg-slate-800 hover:text-slate-300"
+                    : "bg-slate-950 text-slate-400 border-slate-800 hover:bg-slate-800 hover:text-slate-300"
                 }`}
                 title="عرض وإدارة أعمدة التحصيل المؤرشفة"
               >
-                <i className="fa-solid fa-box-archive text-amber-400"></i>
-                <span>الأرشيف</span>
+                <i className="fa-solid fa-box-archive text-amber-400 text-[10px]"></i>
+                <span className="hidden sm:inline">الأرشيف</span>
                 {archivedCount > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-extrabold border border-amber-500/30">
+                  <span className="px-1 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-extrabold">
                     {archivedCount}
                   </span>
                 )}
@@ -378,67 +421,13 @@ export default function MadyafaTable({
             )}
 
             <button
-              onClick={onOpenExpensesModal}
-              className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-rose-950/70 text-rose-300 border border-rose-800/60 hover:bg-rose-900/60 flex items-center gap-1 transition"
-            >
-              <i className="fa-solid fa-receipt text-rose-400"></i>
-              <span>المصروفات</span>
-            </button>
-            <button
               onClick={() => onOpenColumnModal()}
-              className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-teal-950/80 text-teal-300 border border-teal-800/60 hover:bg-teal-900/60 flex items-center gap-1 transition"
+              className="px-2.5 py-1 rounded-lg text-xs font-bold bg-teal-950/80 text-teal-300 border border-teal-800/60 hover:bg-teal-900/60 flex items-center gap-1 transition"
             >
-              <i className="fa-solid fa-plus text-teal-400"></i>
+              <i className="fa-solid fa-plus text-teal-400 text-[10px]"></i>
               <span>عمود جديد</span>
             </button>
           </div>
-        </div>
-      </div>
-
-      {/* Helper Banner for Auto-Expanding Columns & Navigation */}
-      <div className="mb-2 px-3 py-1.5 bg-slate-900/80 border border-slate-800/80 rounded-xl flex items-center justify-between text-[11px] text-slate-300 shrink-0">
-        <div className="flex items-center gap-1.5 min-w-0 flex-1 truncate">
-          <i className="fa-solid fa-wand-magic-sparkles text-teal-400 shrink-0"></i>
-          <span className="truncate">
-            <strong className="text-teal-300">ميزة ذكية:</strong> عند التعليم في آخر عمود، يتم تلقائياً إنشاء عمود جديد!
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1 shrink-0 mr-1.5">
-          <button
-            type="button"
-            onClick={() => scrollToEdge("start")}
-            className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 shadow-sm flex items-center gap-1 active:scale-95 transition text-[11px] font-bold"
-            title="الرجوع لأسماء الأعضاء"
-          >
-            <i className="fa-solid fa-angles-right text-[10px]"></i>
-            <span className="hidden sm:inline">الأسماء</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => scrollHorizontally("right")}
-            className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 shadow-sm flex items-center justify-center active:scale-90 transition font-bold"
-            title="تمرير لليمين"
-          >
-            <i className="fa-solid fa-chevron-right text-xs"></i>
-          </button>
-          <button
-            type="button"
-            onClick={() => scrollHorizontally("left")}
-            className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 shadow-sm flex items-center justify-center active:scale-90 transition font-bold"
-            title="تمرير لليسار"
-          >
-            <i className="fa-solid fa-chevron-left text-xs"></i>
-          </button>
-          <button
-            type="button"
-            onClick={() => scrollToEdge("end")}
-            className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-teal-300 shadow-sm flex items-center gap-1 active:scale-95 transition text-[11px] font-bold"
-            title="الذهاب لآخر دفعة"
-          >
-            <span className="hidden sm:inline">آخر عمود</span>
-            <i className="fa-solid fa-angles-left text-[10px]"></i>
-          </button>
         </div>
       </div>
 
@@ -452,7 +441,7 @@ export default function MadyafaTable({
             {/* Table Header */}
             <thead>
               <tr>
-                <th className="sticky-col-right py-2.5 px-2 sm:px-2.5 min-w-[130px] max-w-[145px] sm:min-w-[200px] sm:max-w-[230px]">
+                <th className="sticky-col-right bg-[#0f1a30] py-2.5 px-2 sm:px-2.5 min-w-[130px] max-w-[145px] sm:min-w-[200px] sm:max-w-[230px]">
                   <div className="flex items-center justify-between">
                     <span className="font-extrabold text-slate-100 text-xs sm:text-sm">م • اسم العضو</span>
                     <span className="text-[10px] bg-slate-800 text-teal-400 font-bold px-1.5 py-0.5 rounded-md border border-slate-700">
@@ -490,9 +479,30 @@ export default function MadyafaTable({
                             </span>
                           )}
                           {isLast && !col.isArchived && (
-                            <span className="text-[9px] bg-amber-950 text-amber-300 border border-amber-800/60 px-1.5 py-0.5 rounded-md font-bold">
-                              تلقائي+
-                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onCycleAutoMode?.();
+                              }}
+                              className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold transition border cursor-pointer active:scale-95 flex items-center gap-1 ${
+                                autoColumnMode === "manual"
+                                  ? "bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700"
+                                  : autoColumnMode === "on_first_check"
+                                  ? "bg-teal-950 text-teal-300 border-teal-800 hover:bg-teal-900"
+                                  : "bg-amber-950 text-amber-300 border-amber-800/60 hover:bg-amber-900"
+                              }`}
+                              title="انقر لتغيير نمط التوليد التلقائي (عند الاكتمال / أول دفعة / يدوي)"
+                            >
+                              <span>
+                                {autoColumnMode === "manual"
+                                  ? "يدوي"
+                                  : autoColumnMode === "on_first_check"
+                                  ? "تلقائي (أول دفعة)"
+                                  : "تلقائي+"}
+                              </span>
+                              <i className="fa-solid fa-arrows-rotate text-[8px] opacity-70"></i>
+                            </button>
                           )}
                         </div>
                       </div>
@@ -517,9 +527,27 @@ export default function MadyafaTable({
             <tbody className="divide-y divide-slate-800/70 text-xs sm:text-sm">
               {filteredMembers.length === 0 ? (
                 <tr>
-                  <td colSpan={columns.length + 2} className="py-12 text-center text-slate-500">
-                    <i className="fa-solid fa-users-slash text-2xl text-slate-600 block mb-2"></i>
-                    لا توجد نتائج مطابقة لبحثك أو الفلتر المختار.
+                  <td colSpan={columns.length + 2} className="py-12 px-4 text-center">
+                    <div className="flex flex-col items-center justify-center gap-2.5 max-w-sm mx-auto text-slate-400">
+                      <div className="w-12 h-12 rounded-2xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center text-teal-400 text-xl shadow-lg">
+                        <i className="fa-solid fa-users-slash"></i>
+                      </div>
+                      <p className="font-bold text-sm text-slate-200">
+                        {members.length === 0 ? "لا يوجد أعضاء مسجلين بعد" : "لا توجد نتائج مطابقة لبحثك أو الفلتر"}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {members.length === 0 ? "اضغط على زر '+ إضافة عضو' للبدء في تدوين المشتركين" : "جرّب البحث باسم آخر أو إعادة ضبط الفلتر"}
+                      </p>
+                      {members.length === 0 && (
+                        <button
+                          type="button"
+                          onClick={() => onOpenMemberModal()}
+                          className="mt-2 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs shadow-md transition active:scale-95"
+                        >
+                          + إضافة أول عضو الآن
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -529,7 +557,7 @@ export default function MadyafaTable({
                   return (
                     <tr key={member.id} className="hover:bg-slate-850/60 transition">
                       {/* Sticky Member Name & Index Cell */}
-                      <td className="sticky-col-right py-2 px-2 sm:px-2.5 min-w-[130px] max-w-[145px] sm:min-w-[200px] sm:max-w-[230px] align-middle">
+                      <td className="sticky-col-right bg-[#090f1d] py-2 px-2 sm:px-2.5 min-w-[130px] max-w-[145px] sm:min-w-[200px] sm:max-w-[230px] align-middle">
                         <div
                           onClick={() => onOpenMemberModal(member)}
                           className="cursor-pointer group flex items-start gap-1.5 sm:gap-2"
@@ -632,7 +660,7 @@ export default function MadyafaTable({
             {/* Table Footer: Column Totals */}
             <tfoot>
               <tr>
-                <td className="sticky-col-right py-2 px-2 sm:px-2.5 min-w-[130px] max-w-[145px] sm:min-w-[200px] sm:max-w-[230px] font-black text-teal-300">
+                <td className="sticky-col-right bg-[#0d182b] py-2 px-2 sm:px-2.5 min-w-[130px] max-w-[145px] sm:min-w-[200px] sm:max-w-[230px] font-black text-teal-300">
                   <div className="text-xs sm:text-sm">إجمالي التحصيل</div>
                   <div className="text-[9px] sm:text-[10px] font-normal text-slate-400">المحصل والمتبقي</div>
                 </td>

@@ -16,6 +16,7 @@ interface WorkspaceSettingsModalProps {
       currency: string;
       publicSlug: string;
       publicPin?: string;
+      autoColumnMode?: "on_complete" | "on_first_check" | "manual";
     };
   }) => void;
 }
@@ -33,6 +34,7 @@ export default function WorkspaceSettingsModal({
   const [currency, setCurrency] = useState("ج.م");
   const [publicSlug, setPublicSlug] = useState("");
   const [publicPin, setPublicPin] = useState("");
+  const [autoColumnMode, setAutoColumnMode] = useState<"on_complete" | "on_first_check" | "manual">("on_complete");
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -44,6 +46,7 @@ export default function WorkspaceSettingsModal({
       setCurrency(workspace.settings?.currency || "ج.م");
       setPublicSlug(workspace.settings?.publicSlug || "");
       setPublicPin(workspace.settings?.publicPin || "");
+      setAutoColumnMode(workspace.settings?.autoColumnMode || "on_complete");
     }
   }, [workspace, isOpen]);
 
@@ -72,6 +75,7 @@ export default function WorkspaceSettingsModal({
         currency: currency.trim() || "ج.م",
         publicSlug: publicSlug.trim().toLowerCase(),
         publicPin: publicPin.trim(),
+        autoColumnMode,
       },
     });
     onClose();
@@ -146,6 +150,60 @@ export default function WorkspaceSettingsModal({
               placeholder="مثال: دفعة / شهر"
               className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
+          </div>
+
+          {/* Auto Column Generation Mode */}
+          <div className="pt-2 border-t border-slate-800">
+            <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
+              <i className="fa-solid fa-wand-magic-sparkles text-teal-400 text-xs"></i>
+              <span>نظام التوليد التلقائي للأعمدة:</span>
+            </label>
+            <div className="space-y-2 text-xs">
+              <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 cursor-pointer transition">
+                <input
+                  type="radio"
+                  name="autoColumnMode"
+                  value="on_complete"
+                  checked={autoColumnMode === "on_complete"}
+                  onChange={() => setAutoColumnMode("on_complete")}
+                  className="mt-0.5 text-teal-500 focus:ring-teal-500"
+                />
+                <div>
+                  <div className="font-bold text-slate-200">عند اكتمال تحصيل العمود 100% (موصى به)</div>
+                  <div className="text-[11px] text-slate-400">ينشئ العمود الجديد فقط بعد اكتمال دفع جميع الأعضاء في العمود الحالي</div>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 cursor-pointer transition">
+                <input
+                  type="radio"
+                  name="autoColumnMode"
+                  value="on_first_check"
+                  checked={autoColumnMode === "on_first_check"}
+                  onChange={() => setAutoColumnMode("on_first_check")}
+                  className="mt-0.5 text-teal-500 focus:ring-teal-500"
+                />
+                <div>
+                  <div className="font-bold text-slate-200">عند أول دفعة في العمود الأخير</div>
+                  <div className="text-[11px] text-slate-400">ينشئ عموداً فارغاً فوراً في الخلفية بدون تحريك الشاشة أو تشتيتك</div>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 cursor-pointer transition">
+                <input
+                  type="radio"
+                  name="autoColumnMode"
+                  value="manual"
+                  checked={autoColumnMode === "manual"}
+                  onChange={() => setAutoColumnMode("manual")}
+                  className="mt-0.5 text-teal-500 focus:ring-teal-500"
+                />
+                <div>
+                  <div className="font-bold text-slate-200">يدوي فقط (إيقاف التلقائي)</div>
+                  <div className="text-[11px] text-slate-400">لا يتم إنشاء أي عمود إلا عند الضغط يدوياً على زر (+)</div>
+                </div>
+              </label>
+            </div>
           </div>
 
           {/* Public Transparency Link Section */}

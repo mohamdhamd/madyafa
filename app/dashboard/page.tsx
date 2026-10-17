@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 import { localDb, LocalWorkspace } from "@/lib/db/localDb";
 import { syncEngine } from "@/lib/sync/syncEngine";
 
@@ -231,49 +232,63 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        {/* Global Summary Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 my-6">
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-lg flex items-center justify-between">
-            <div>
-              <div className="text-xs font-bold text-slate-400">إجمالي المضايف والجمعيات</div>
-              <div className="text-2xl font-black text-slate-100 mt-1">{workspaces.length}</div>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-teal-950/70 border border-teal-500/30 flex items-center justify-center text-teal-400 text-lg">
+        {/* Global Summary Metric Cards - Ultra Compact 3-in-1 Row on Mobile */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 my-4 sm:my-6">
+          <div className="bg-slate-900/90 border border-slate-800/90 rounded-2xl p-2.5 sm:p-4 shadow-lg flex flex-col items-center text-center justify-center sm:flex-row sm:justify-between sm:text-right">
+            <div className="w-7 h-7 sm:w-11 sm:h-11 rounded-xl bg-teal-950/70 border border-teal-500/30 flex items-center justify-center text-teal-400 text-xs sm:text-base mb-1.5 sm:mb-0 sm:order-2 shrink-0">
               <i className="fa-solid fa-building-columns"></i>
             </div>
+            <div className="min-w-0 sm:order-1">
+              <div className="text-sm sm:text-2xl font-black text-slate-100 truncate">{workspaces.length}</div>
+              <div className="text-[10px] sm:text-xs font-bold text-slate-400 truncate mt-0.5">المضايف</div>
+            </div>
           </div>
 
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-lg flex items-center justify-between">
-            <div>
-              <div className="text-xs font-bold text-slate-400">إجمالي الأعضاء المشتركين</div>
-              <div className="text-2xl font-black text-emerald-400 mt-1">{totalMembersAll}</div>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-emerald-950/70 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-lg">
+          <div className="bg-slate-900/90 border border-slate-800/90 rounded-2xl p-2.5 sm:p-4 shadow-lg flex flex-col items-center text-center justify-center sm:flex-row sm:justify-between sm:text-right">
+            <div className="w-7 h-7 sm:w-11 sm:h-11 rounded-xl bg-emerald-950/70 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-xs sm:text-base mb-1.5 sm:mb-0 sm:order-2 shrink-0">
               <i className="fa-solid fa-users"></i>
             </div>
+            <div className="min-w-0 sm:order-1">
+              <div className="text-sm sm:text-2xl font-black text-emerald-400 truncate">{totalMembersAll}</div>
+              <div className="text-[10px] sm:text-xs font-bold text-slate-400 truncate mt-0.5">الأعضاء</div>
+            </div>
           </div>
 
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-lg flex items-center justify-between">
-            <div>
-              <div className="text-xs font-bold text-slate-400">إجمالي المصروفات المسجلة</div>
-              <div className="text-2xl font-black text-rose-400 mt-1">
-                {totalExpensesAll.toLocaleString()} ج.م
-              </div>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-rose-950/70 border border-rose-500/30 flex items-center justify-center text-rose-400 text-lg">
+          <div className="bg-slate-900/90 border border-slate-800/90 rounded-2xl p-2.5 sm:p-4 shadow-lg flex flex-col items-center text-center justify-center sm:flex-row sm:justify-between sm:text-right">
+            <div className="w-7 h-7 sm:w-11 sm:h-11 rounded-xl bg-rose-950/70 border border-rose-500/30 flex items-center justify-center text-rose-400 text-xs sm:text-base mb-1.5 sm:mb-0 sm:order-2 shrink-0">
               <i className="fa-solid fa-receipt"></i>
+            </div>
+            <div className="min-w-0 sm:order-1">
+              <div className="text-sm sm:text-2xl font-black text-rose-400 truncate">
+                {totalExpensesAll > 9999 ? `${(totalExpensesAll / 1000).toFixed(1)}k` : totalExpensesAll.toLocaleString()}
+                <span className="text-[9px] sm:text-xs font-normal text-slate-400 mr-0.5">ج.م</span>
+              </div>
+              <div className="text-[10px] sm:text-xs font-bold text-slate-400 truncate mt-0.5">المصروفات</div>
             </div>
           </div>
         </div>
 
         {/* Workspaces List / Grid */}
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base sm:text-lg font-black text-slate-100 flex items-center gap-2">
-              <i className="fa-solid fa-layer-group text-teal-400"></i>
-              <span>قائمة المضايف المسجلة:</span>
-            </h3>
-            <span className="text-xs text-slate-400">اختر المضيافة لفتح جدول التحصيل والمتابعة</span>
+        <div className="mt-6 sm:mt-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-4">
+            <div className="flex flex-col items-start text-right">
+              <h3 className="text-base sm:text-lg font-black text-slate-100 flex items-center gap-2">
+                <i className="fa-solid fa-layer-group text-teal-400"></i>
+                <span>قائمة المضايف المسجلة</span>
+              </h3>
+              <span className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
+                اختر المضيافة لفتح جدول التحصيل والمتابعة
+              </span>
+            </div>
+            {workspaces.length > 0 && (
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="self-start sm:self-auto bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-teal-300 font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition active:scale-95"
+              >
+                <i className="fa-solid fa-plus text-xs"></i>
+                <span>مضيافة جديدة</span>
+              </button>
+            )}
           </div>
 
           {loading ? (
@@ -359,6 +374,8 @@ export default function DashboardPage() {
           )}
         </div>
       </main>
+
+      <Footer />
 
       {/* Create Workspace Modal */}
       {isCreateModalOpen && (

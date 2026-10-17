@@ -130,6 +130,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
       if (settings.currency) workspace.settings.currency = settings.currency.trim();
       if (settings.publicSlug) workspace.settings.publicSlug = settings.publicSlug.trim().toLowerCase();
       if (settings.publicPin !== undefined) workspace.settings.publicPin = settings.publicPin.trim();
+      if (settings.autoColumnMode) workspace.settings.autoColumnMode = settings.autoColumnMode;
     }
 
     await workspace.save();

@@ -146,12 +146,15 @@ export default function Header({
                 </p>
               </div>
             ) : (
-              <div>
-                <Link href="/dashboard" className="font-extrabold text-sm sm:text-base text-slate-100 hover:text-teal-400 transition">
-                  دفتر المضيافة الذكي
+              <div className="whitespace-nowrap min-w-0">
+                <Link
+                  href="/dashboard"
+                  className="font-extrabold text-sm sm:text-base text-slate-100 hover:text-teal-400 transition whitespace-nowrap block truncate"
+                >
+                  دفتر المضيافة
                 </Link>
-                <p className="text-[10px] sm:text-[11px] text-slate-400">
-                  لوحة تحكم المضايف والجمعيات الخدمية
+                <p className="text-[10px] sm:text-[11px] text-slate-400 truncate hidden xs:block sm:block">
+                  إدارة المضايف والاشتراكات
                 </p>
               </div>
             )}
@@ -159,7 +162,7 @@ export default function Header({
         </div>
 
         {/* Right Actions: Sync Badge, PWA Install, User Profile/Logout */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           <SyncBadge />
           <PwaInstallPrompt />
 

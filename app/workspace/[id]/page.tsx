@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 import SummaryStatsBar from "@/components/stats/SummaryStatsBar";
 import MadyafaTable from "@/components/table/MadyafaTable";
 import MemberModal from "@/components/modals/MemberModal";
@@ -237,6 +238,86 @@ export default function WorkspacePage() {
     }
   };
 
+  // Auto-column expansion helper respecting workspace.settings.autoColumnMode
+  const checkAutoColumnExpansion = async (
+    colId: string,
+    currentPayments: Record<string, LocalPayment>,
+    isPaid: boolean
+  ) => {
+    if (!isPaid) return;
+    const mode = workspace?.settings?.autoColumnMode || "on_complete";
+    if (mode === "manual") return;
+
+    const lastActive = activeColumns.length > 0 ? activeColumns[activeColumns.length - 1] : null;
+    const isLastCol = lastActive && lastActive.id === colId;
+    if (!isLastCol) return;
+
+    if (mode === "on_complete") {
+      if (members.length === 0) return;
+      const isCompleted = members.every((m) => {
+        const p = currentPayments[`${m.id}_${colId}`];
+        return p?.status === "paid" || p?.status === "exempt";
+      });
+      if (!isCompleted) return;
+    }
+
+    const prefix = workspace?.settings?.defaultColPrefix || "دفعة";
+    const nextNum = columns.length + 1;
+    const defaultShare = workspace?.settings?.defaultAmount ?? 100;
+    const newColId = `col_${Date.now()}`;
+
+    const newColumn: LocalColumn = {
+      id: newColId,
+      workspaceId,
+      orderIndex: columns.length,
+      title: `${prefix} ${nextNum}`,
+      amount: defaultShare,
+    };
+
+    setColumns((prev) => [...prev, newColumn]);
+    await syncEngine.optimisticUpsertColumn(newColumn);
+
+    if (mode === "on_complete") {
+      setActiveSummaryColId(newColId);
+      setNewlyCreatedColId(newColId);
+      showToast(`اكتمل تحصيل "${lastActive.title}"! تم إنشاء "${prefix} ${nextNum}" تلقائياً ⚡`);
+    } else {
+      // on_first_check: created in background without moving focus or scrolling away
+      showToast(`تم تجهيز عمود "${prefix} ${nextNum}" تلقائياً ✨`);
+    }
+  };
+
+  const handleCycleAutoMode = async () => {
+    const currentMode = workspace?.settings?.autoColumnMode || "on_complete";
+    let nextMode: "on_complete" | "on_first_check" | "manual" = "on_complete";
+    let message = "";
+
+    if (currentMode === "on_complete") {
+      nextMode = "on_first_check";
+      message = "نمط التوليد: تلقائي فور تسجيل أول دفعة بالعمود ✨";
+    } else if (currentMode === "on_first_check") {
+      nextMode = "manual";
+      message = "نمط التوليد: يدوي فقط (إيقاف التوليد التلقائي) ✋";
+    } else {
+      nextMode = "on_complete";
+      message = "نمط التوليد: تلقائي عند اكتمال سداد جميع الأعضاء (موصى به) ⚡";
+    }
+
+    if (!workspace) return;
+    const updatedWs: LocalWorkspace = {
+      ...workspace,
+      settings: {
+        ...workspace.settings,
+        autoColumnMode: nextMode,
+      },
+    };
+
+    setWorkspace(updatedWs);
+    await localDb.workspaces.put(updatedWs);
+    await syncEngine.queueOperation("update", "workspace", workspaceId, workspaceId, updatedWs);
+    showToast(message);
+  };
+
   // Handle Cell Toggle (Click Checkbox)
   const handleToggleCell = async (memberId: string, colId: string) => {
     const key = `${memberId}_${colId}`;
@@ -268,28 +349,9 @@ export default function WorkspacePage() {
       await checkAutoArchive(colId, updatedMap);
     }
 
-    // AUTO-EXPANDING COLUMNS: If checking in the LAST active column, auto-create next column!
-    const lastActive = activeColumns.length > 0 ? activeColumns[activeColumns.length - 1] : null;
-    const isLastCol = lastActive && lastActive.id === colId;
-    if (nextStatus === "paid" && isLastCol) {
-      const prefix = workspace?.settings.defaultColPrefix || "دفعة";
-      const nextNum = columns.length + 1;
-      const defaultShare = workspace?.settings.defaultAmount ?? 100;
-      const newColId = `col_${Date.now()}`;
-
-      const newColumn: LocalColumn = {
-        id: newColId,
-        workspaceId,
-        orderIndex: columns.length,
-        title: `${prefix} ${nextNum} (جديد)`,
-        amount: defaultShare,
-      };
-
-      setColumns((prev) => [...prev, newColumn]);
-      setActiveSummaryColId(newColId);
-      setNewlyCreatedColId(newColId);
-      await syncEngine.optimisticUpsertColumn(newColumn);
-      showToast(`تم إنشاء عمود "${prefix} ${nextNum}" تلقائياً ✨`);
+    // Check auto column expansion if paid
+    if (nextStatus === "paid") {
+      await checkAutoColumnExpansion(colId, updatedMap, true);
     }
   };
 
@@ -397,6 +459,7 @@ export default function WorkspacePage() {
     setPayments(updatedMap);
     showToast("تم تعليم جميع الأعضاء كـ دفعوا بالكامل ✅");
     await checkAutoArchive(colId, updatedMap);
+    await checkAutoColumnExpansion(colId, updatedMap, true);
   };
 
   // Cell Detail Save
@@ -583,6 +646,8 @@ export default function WorkspacePage() {
           payments={payments}
           defaultAmount={workspace?.settings.defaultAmount ?? 100}
           currency={workspace?.settings?.currency || "ج.م"}
+          autoColumnMode={workspace?.settings?.autoColumnMode || "on_complete"}
+          onCycleAutoMode={handleCycleAutoMode}
           onToggleCell={handleToggleCell}
           onOpenCellDetail={(memberId, colId) => {
             setCellTarget({ memberId, colId });
@@ -604,6 +669,8 @@ export default function WorkspacePage() {
           newlyCreatedColId={newlyCreatedColId}
         />
       </main>
+
+      <Footer />
 
       {/* Modals */}
       <MemberModal
