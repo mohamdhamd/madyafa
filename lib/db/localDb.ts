@@ -34,6 +34,8 @@ export interface LocalColumn {
   orderIndex: number;
   title: string;
   amount: number;
+  isArchived?: boolean;
+  archivedAt?: string;
   createdAt?: string;
   updatedAt?: string;
 }

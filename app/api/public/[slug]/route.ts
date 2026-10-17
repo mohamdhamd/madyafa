@@ -64,6 +64,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         orderIndex: c.orderIndex,
         title: c.title,
         amount: c.amount,
+        isArchived: c.isArchived ?? false,
       })),
       payments: payments.map((p) => ({
         id: p._id.toString(),

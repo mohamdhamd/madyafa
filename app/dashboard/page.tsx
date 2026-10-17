@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Header from "@/components/layout/Header";
+import { localDb, LocalWorkspace } from "@/lib/db/localDb";
+import { syncEngine } from "@/lib/sync/syncEngine";
 
 interface WorkspaceItem {
   id: string;
@@ -38,31 +40,90 @@ export default function DashboardPage() {
   const fetchWorkspaces = async () => {
     try {
       setLoading(true);
+
+      // 1. Instant load from local Dexie (offline-first)
+      try {
+        const localWs = await localDb.workspaces.toArray();
+        if (localWs && localWs.length > 0) {
+          setWorkspaces(
+            localWs.map((w: LocalWorkspace) => ({
+              id: w.id,
+              title: w.title,
+              description: w.description || "",
+              isOwner: true,
+              memberCount: 0,
+              totalExpenses: 0,
+              settings: {
+                defaultAmount: w.settings?.defaultAmount ?? 100,
+                currency: w.settings?.currency || "EGP",
+                publicSlug: w.settings?.publicSlug || "",
+              },
+              createdAt: w.createdAt || new Date().toISOString(),
+            }))
+          );
+        }
+      } catch (localErr) {
+        console.warn("Local DB read warning:", localErr);
+      }
+
+      // 2. Fetch fresh data from server if online
       const res = await fetch("/api/workspaces");
       if (res.status === 401) {
-        router.push("/login");
-        return;
+        if (typeof navigator !== "undefined" && navigator.onLine) {
+          localStorage.removeItem("madyafa_auth");
+          router.push("/login");
+          return;
+        }
       }
-      const data = await res.json();
-      if (data.workspaces) {
-        setWorkspaces(data.workspaces);
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.workspaces) {
+          setWorkspaces(data.workspaces);
+          // Persist workspaces to local Dexie for offline access
+          try {
+            await localDb.workspaces.bulkPut(
+              data.workspaces.map((w: any) => ({
+                id: w.id,
+                title: w.title,
+                description: w.description || "",
+                ownerId: w.ownerId,
+                settings: w.settings,
+                createdAt: w.createdAt,
+                updatedAt: w.updatedAt,
+              }))
+            );
+          } catch (dbErr) {
+            console.warn("Local DB persist warning:", dbErr);
+          }
+        }
       }
     } catch (e) {
-      console.error(e);
+      console.log("Offline mode: workspaces served from local storage");
     } finally {
       setLoading(false);
     }
   };
 
   const fetchUser = async () => {
+    // Load cached name instantly
+    if (typeof window !== "undefined") {
+      const cached = localStorage.getItem("madyafa_user_name");
+      if (cached) setUserName(cached);
+    }
+
     try {
       const res = await fetch("/api/auth/me");
       if (res.ok) {
         const data = await res.json();
-        setUserName(data.user?.name || "");
+        if (data.user?.name) {
+          setUserName(data.user.name);
+          localStorage.setItem("madyafa_user_name", data.user.name);
+          localStorage.setItem("madyafa_auth", "true");
+        }
       }
     } catch (e) {
-      console.error(e);
+      console.log("Offline mode: User profile loaded from local cache");
     }
   };
 
@@ -79,6 +140,33 @@ export default function DashboardPage() {
     setErrorMsg("");
 
     try {
+      // If offline, create workspace locally in Dexie and queue sync
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        const tempId = `ws_${Date.now()}`;
+        const offlineWs: LocalWorkspace = {
+          id: tempId,
+          title: newTitle.trim(),
+          description: newDescription.trim(),
+          settings: {
+            defaultAmount: Number(newAmount) || 100,
+            defaultColPrefix: newPrefix.trim() || "دفعة",
+            currency: "EGP",
+            publicSlug: `offline-${Date.now()}`,
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        await localDb.workspaces.put(offlineWs);
+        await syncEngine.queueOperation("create", "workspace", tempId, tempId, offlineWs);
+
+        setIsCreateModalOpen(false);
+        setNewTitle("");
+        setNewDescription("");
+        router.push(`/workspace/${tempId}`);
+        return;
+      }
+
       const res = await fetch("/api/workspaces", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -94,6 +182,11 @@ export default function DashboardPage() {
       if (!res.ok) {
         setErrorMsg(data.error || "فشل إنشاء المضيافة");
         return;
+      }
+
+      // Save to local DB as well
+      if (data.workspace) {
+        await localDb.workspaces.put(data.workspace);
       }
 
       setIsCreateModalOpen(false);

@@ -3,7 +3,7 @@
 import React from "react";
 
 interface SummaryStatsBarProps {
-  columns: Array<{ id: string; title: string; amount: number }>;
+  columns: Array<{ id: string; title: string; amount: number; isArchived?: boolean }>;
   activeColId: string;
   onSelectColumn: (colId: string) => void;
   stats: {
@@ -43,7 +43,7 @@ export default function SummaryStatsBar({
             >
               {columns.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.title} ({c.amount} {currency})
+                  {c.title} {c.isArchived ? "📦 (مؤرشف)" : ""} ({c.amount} {currency})
                 </option>
               ))}
             </select>

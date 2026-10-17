@@ -30,6 +30,11 @@ export default function LoginPage() {
         return;
       }
 
+      localStorage.setItem("madyafa_auth", "true");
+      if (data.user?.name) {
+        localStorage.setItem("madyafa_user_name", data.user.name);
+      }
+
       router.push("/dashboard");
       router.refresh();
     } catch (e: any) {

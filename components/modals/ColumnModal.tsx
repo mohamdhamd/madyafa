@@ -9,6 +9,7 @@ interface ColumnModalProps {
   onSave: (columnData: { id?: string; title: string; amount: number }) => void;
   onDelete?: (id: string) => void;
   onMarkAllPaid?: (id: string) => void;
+  onToggleArchive?: (id: string, isArchived: boolean) => void;
   editingColumn?: LocalColumn | null;
   currency?: string;
 }
@@ -19,6 +20,7 @@ export default function ColumnModal({
   onSave,
   onDelete,
   onMarkAllPaid,
+  onToggleArchive,
   editingColumn,
   currency = "ج.م",
 }: ColumnModalProps) {
@@ -100,22 +102,48 @@ export default function ColumnModal({
           </div>
 
           {editingColumn && (
-            <div className="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
-              {onMarkAllPaid && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (confirm(`هل أنت متأكد من تعليم جميع الأعضاء كـ "دفعوا بالكامل" في عمود "${editingColumn.title}"؟`)) {
-                      onMarkAllPaid(editingColumn.id);
-                      onClose();
-                    }
-                  }}
-                  className="bg-emerald-950/70 hover:bg-emerald-900 border border-emerald-800/80 text-emerald-300 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 transition"
-                >
-                  <i className="fa-solid fa-check-double text-xs"></i>
-                  <span>تعليم الكل دفع</span>
-                </button>
-              )}
+            <div className="pt-2 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {onMarkAllPaid && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm(`هل أنت متأكد من تعليم جميع الأعضاء كـ "دفعوا بالكامل" في عمود "${editingColumn.title}"؟`)) {
+                        onMarkAllPaid(editingColumn.id);
+                        onClose();
+                      }
+                    }}
+                    className="bg-emerald-950/70 hover:bg-emerald-900 border border-emerald-800/80 text-emerald-300 text-xs font-bold px-2.5 py-2 rounded-xl flex items-center gap-1.5 transition"
+                  >
+                    <i className="fa-solid fa-check-double text-xs"></i>
+                    <span>تعليم الكل دفع</span>
+                  </button>
+                )}
+
+                {onToggleArchive && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const willArchive = !editingColumn.isArchived;
+                      const msg = willArchive
+                        ? `هل تريد أرشفة عمود "${editingColumn.title}"؟ سيتم إخفاؤه من الجدول النشط مع حفظ كافة بياناته.`
+                        : `هل تريد استعادة عمود "${editingColumn.title}" إلى الجدول النشط؟`;
+                      if (confirm(msg)) {
+                        onToggleArchive(editingColumn.id, willArchive);
+                        onClose();
+                      }
+                    }}
+                    className={`text-xs font-bold px-2.5 py-2 rounded-xl flex items-center gap-1.5 border transition ${
+                      editingColumn.isArchived
+                        ? "bg-teal-950/80 hover:bg-teal-900 border-teal-700/80 text-teal-300"
+                        : "bg-amber-950/70 hover:bg-amber-900 border-amber-800/80 text-amber-300"
+                    }`}
+                  >
+                    <i className={`fa-solid ${editingColumn.isArchived ? "fa-box-open" : "fa-box-archive"} text-xs`}></i>
+                    <span>{editingColumn.isArchived ? "استعادة للجدول" : "أرشفة العمود"}</span>
+                  </button>
+                )}
+              </div>
 
               {onDelete && (
                 <button
@@ -126,10 +154,10 @@ export default function ColumnModal({
                       onClose();
                     }
                   }}
-                  className="bg-rose-950/70 hover:bg-rose-900 border border-rose-800/80 text-rose-300 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1 transition"
+                  className="bg-rose-950/70 hover:bg-rose-900 border border-rose-800/80 text-rose-300 text-xs font-bold px-2.5 py-2 rounded-xl flex items-center gap-1 transition"
                 >
                   <i className="fa-solid fa-trash-can text-xs"></i>
-                  <span>حذف العمود</span>
+                  <span>حذف</span>
                 </button>
               )}
             </div>

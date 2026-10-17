@@ -16,6 +16,8 @@ interface MadyafaTableProps {
   onOpenBulkJsonModal: () => void;
   onOpenWhatsAppModal: () => void;
   onOpenExpensesModal: () => void;
+  onOpenArchivedModal?: () => void;
+  archivedCount?: number;
   newlyCreatedColId?: string | null;
 }
 
@@ -32,6 +34,8 @@ export default function MadyafaTable({
   onOpenBulkJsonModal,
   onOpenWhatsAppModal,
   onOpenExpensesModal,
+  onOpenArchivedModal,
+  archivedCount = 0,
   newlyCreatedColId,
 }: MadyafaTableProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -353,6 +357,26 @@ export default function MadyafaTable({
           </div>
 
           <div className="flex items-center gap-1 shrink-0">
+            {onOpenArchivedModal && (
+              <button
+                onClick={onOpenArchivedModal}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border flex items-center gap-1.5 transition ${
+                  archivedCount > 0
+                    ? "bg-amber-950/70 text-amber-300 border-amber-800/70 hover:bg-amber-900/60 shadow-sm"
+                    : "bg-slate-900/90 text-slate-400 border-slate-800 hover:bg-slate-800 hover:text-slate-300"
+                }`}
+                title="عرض وإدارة أعمدة التحصيل المؤرشفة"
+              >
+                <i className="fa-solid fa-box-archive text-amber-400"></i>
+                <span>الأرشيف</span>
+                {archivedCount > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-extrabold border border-amber-500/30">
+                    {archivedCount}
+                  </span>
+                )}
+              </button>
+            )}
+
             <button
               onClick={onOpenExpensesModal}
               className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-rose-950/70 text-rose-300 border border-rose-800/60 hover:bg-rose-900/60 flex items-center gap-1 transition"
@@ -455,11 +479,17 @@ export default function MadyafaTable({
                           <span className="truncate max-w-[100px]">{col.title}</span>
                           <i className="fa-solid fa-pen text-[9px] text-slate-500 group-hover:text-teal-400 shrink-0"></i>
                         </div>
-                        <div className="mt-1 flex items-center justify-center gap-1">
+                        <div className="mt-1 flex items-center justify-center gap-1 flex-wrap">
                           <span className="text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800/60 px-1.5 py-0.5 rounded-md">
                             {col.amount} {currency}
                           </span>
-                          {isLast && (
+                          {col.isArchived && (
+                            <span className="text-[9px] bg-amber-950 text-amber-300 border border-amber-800/60 px-1.5 py-0.5 rounded-md font-bold flex items-center gap-0.5">
+                              <i className="fa-solid fa-box-archive text-[8px]"></i>
+                              <span>مؤرشف</span>
+                            </span>
+                          )}
+                          {isLast && !col.isArchived && (
                             <span className="text-[9px] bg-amber-950 text-amber-300 border border-amber-800/60 px-1.5 py-0.5 rounded-md font-bold">
                               تلقائي+
                             </span>

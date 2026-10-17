@@ -5,6 +5,8 @@ export interface IColumn extends Document {
   orderIndex: number;
   title: string;
   amount: number;
+  isArchived: boolean;
+  archivedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -15,6 +17,8 @@ const ColumnSchema = new Schema<IColumn>(
     orderIndex: { type: Number, required: true, default: 0 },
     title: { type: String, required: true, trim: true },
     amount: { type: Number, required: true, default: 100 },
+    isArchived: { type: Boolean, default: false, index: true },
+    archivedAt: { type: Date },
   },
   { timestamps: true }
 );

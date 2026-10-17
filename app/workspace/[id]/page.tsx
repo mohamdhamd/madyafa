@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Header from "@/components/layout/Header";
 import SummaryStatsBar from "@/components/stats/SummaryStatsBar";
@@ -12,6 +12,7 @@ import BulkJsonModal from "@/components/modals/BulkJsonModal";
 import WhatsAppModal from "@/components/modals/WhatsAppModal";
 import WorkspaceSettingsModal from "@/components/modals/WorkspaceSettingsModal";
 import ExpenseModal from "@/components/modals/ExpenseModal";
+import ArchivedColumnsModal from "@/components/modals/ArchivedColumnsModal";
 import { localDb, LocalColumn, LocalMember, LocalPayment, LocalExpense, LocalWorkspace } from "@/lib/db/localDb";
 import { syncEngine } from "@/lib/sync/syncEngine";
 
@@ -44,6 +45,19 @@ export default function WorkspacePage() {
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isExpenseOpen, setIsExpenseOpen] = useState(false);
+  const [isArchivedModalOpen, setIsArchivedModalOpen] = useState(false);
+  const [showArchivedInTable, setShowArchivedInTable] = useState(false);
+  const [autoArchiveCompleted, setAutoArchiveCompleted] = useState<boolean>(false);
+
+  // Load auto archive preference from localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(`madyafa_auto_archive_${workspaceId}`);
+      if (saved !== null) {
+        setAutoArchiveCompleted(saved === "true");
+      }
+    }
+  }, [workspaceId]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -84,8 +98,11 @@ export default function WorkspacePage() {
     try {
       const res = await fetch(`/api/workspaces/${workspaceId}`);
       if (res.status === 401) {
-        router.push("/login");
-        return;
+        if (typeof navigator !== "undefined" && navigator.onLine) {
+          localStorage.removeItem("madyafa_auth");
+          router.push("/login");
+          return;
+        }
       }
       if (!res.ok) return;
 
@@ -139,6 +156,15 @@ export default function WorkspacePage() {
 
   // Fetch workspaces for switcher
   useEffect(() => {
+    localDb.workspaces
+      .toArray()
+      .then((ws) => {
+        if (ws && ws.length > 0) {
+          setAllWorkspaces(ws.map((w) => ({ id: w.id, title: w.title })));
+        }
+      })
+      .catch(() => {});
+
     fetch("/api/workspaces")
       .then((r) => r.json())
       .then((d) => {
@@ -150,6 +176,66 @@ export default function WorkspacePage() {
   useEffect(() => {
     loadFromLocalDb().then(() => fetchFromServer());
   }, [workspaceId, loadFromLocalDb, fetchFromServer]);
+
+  // Partition columns into active and archived
+  const activeColumns = useMemo(() => columns.filter((c) => !c.isArchived), [columns]);
+  const archivedColumns = useMemo(() => columns.filter((c) => c.isArchived), [columns]);
+  const displayedColumns = useMemo(() => {
+    if (showArchivedInTable) return columns;
+    return activeColumns;
+  }, [showArchivedInTable, columns, activeColumns]);
+
+  const handleToggleAutoArchive = (enabled: boolean) => {
+    setAutoArchiveCompleted(enabled);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(`madyafa_auto_archive_${workspaceId}`, String(enabled));
+    }
+    showToast(enabled ? "تم تفعيل الأرشفة التلقائية عند الاكتمال ⚡" : "تم تعطيل الأرشفة التلقائية");
+  };
+
+  const handleToggleArchiveColumn = async (colId: string, isArchived: boolean) => {
+    const col = columns.find((c) => c.id === colId);
+    if (!col) return;
+
+    const updatedCol: LocalColumn = {
+      ...col,
+      isArchived,
+      archivedAt: isArchived ? new Date().toISOString() : undefined,
+      updatedAt: new Date().toISOString(),
+    };
+
+    setColumns((prev) => prev.map((c) => (c.id === colId ? updatedCol : c)));
+    await syncEngine.optimisticUpsertColumn(updatedCol);
+    showToast(
+      isArchived
+        ? `تم نقل عمود "${col.title}" إلى الأرشيف 📦`
+        : `تمت استعادة عمود "${col.title}" إلى الجدول النشط 🔄`
+    );
+  };
+
+  const checkAutoArchive = async (colId: string, currentPayments: Record<string, LocalPayment>) => {
+    if (!autoArchiveCompleted) return;
+    const col = columns.find((c) => c.id === colId);
+    if (!col || col.isArchived) return;
+
+    if (members.length === 0) return;
+    const isCompleted = members.every((m) => {
+      const p = currentPayments[`${m.id}_${colId}`];
+      return p?.status === "paid" || p?.status === "exempt";
+    });
+
+    if (isCompleted) {
+      const updatedCol: LocalColumn = {
+        ...col,
+        isArchived: true,
+        archivedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setColumns((prev) => prev.map((c) => (c.id === colId ? updatedCol : c)));
+      await syncEngine.optimisticUpsertColumn(updatedCol);
+      showToast(`تمت أرشفة عمود "${col.title}" تلقائياً لاكتمال تحصيله بنسبة 100% 📦`);
+    }
+  };
 
   // Handle Cell Toggle (Click Checkbox)
   const handleToggleCell = async (memberId: string, colId: string) => {
@@ -173,11 +259,18 @@ export default function WorkspacePage() {
     };
 
     // Optimistic UI state update
-    setPayments((prev) => ({ ...prev, [key]: updatedPayment }));
+    const updatedMap = { ...payments, [key]: updatedPayment };
+    setPayments(updatedMap);
     await syncEngine.optimisticUpsertPayment(updatedPayment);
 
-    // AUTO-EXPANDING COLUMNS: If checking in the LAST column, auto-create next column!
-    const isLastCol = columns.length > 0 && columns[columns.length - 1].id === colId;
+    // Check auto archive if paid
+    if (nextStatus === "paid") {
+      await checkAutoArchive(colId, updatedMap);
+    }
+
+    // AUTO-EXPANDING COLUMNS: If checking in the LAST active column, auto-create next column!
+    const lastActive = activeColumns.length > 0 ? activeColumns[activeColumns.length - 1] : null;
+    const isLastCol = lastActive && lastActive.id === colId;
     if (nextStatus === "paid" && isLastCol) {
       const prefix = workspace?.settings.defaultColPrefix || "دفعة";
       const nextNum = columns.length + 1;
@@ -303,6 +396,7 @@ export default function WorkspacePage() {
 
     setPayments(updatedMap);
     showToast("تم تعليم جميع الأعضاء كـ دفعوا بالكامل ✅");
+    await checkAutoArchive(colId, updatedMap);
   };
 
   // Cell Detail Save
@@ -324,8 +418,12 @@ export default function WorkspacePage() {
       updatedAt: new Date().toISOString(),
     };
 
-    setPayments((prev) => ({ ...prev, [key]: updated }));
+    const updatedMap = { ...payments, [key]: updated };
+    setPayments(updatedMap);
     await syncEngine.optimisticUpsertPayment(updated);
+    if (pData.status === "paid" || pData.status === "exempt") {
+      await checkAutoArchive(cellTarget.colId, updatedMap);
+    }
     showToast("تم حفظ تفاصيل الدفعة");
   };
 
@@ -406,7 +504,8 @@ export default function WorkspacePage() {
   };
 
   // Stats for the active column
-  const activeCol = columns.find((c) => c.id === activeSummaryColId) || columns[columns.length - 1];
+  const summaryCols = displayedColumns.length > 0 ? displayedColumns : columns;
+  const activeCol = summaryCols.find((c) => c.id === activeSummaryColId) || summaryCols[summaryCols.length - 1];
   const shareAmount = activeCol?.amount ?? workspace?.settings.defaultAmount ?? 100;
   let paidCount = 0;
   let collectedAmount = 0;
@@ -460,8 +559,8 @@ export default function WorkspacePage() {
       {/* Summary Statistics Bar */}
       {columns.length > 0 && (
         <SummaryStatsBar
-          columns={columns.map((c) => ({ id: c.id, title: c.title, amount: c.amount }))}
-          activeColId={activeSummaryColId || (columns[0]?.id ?? "")}
+          columns={columns.map((c) => ({ id: c.id, title: c.title, amount: c.amount, isArchived: c.isArchived }))}
+          activeColId={activeSummaryColId || (activeCol?.id ?? "")}
           onSelectColumn={(colId) => setActiveSummaryColId(colId)}
           stats={{
             paidCount,
@@ -479,7 +578,7 @@ export default function WorkspacePage() {
       {/* Interactive Matrix Table */}
       <main className="flex-1 flex flex-col">
         <MadyafaTable
-          columns={columns}
+          columns={displayedColumns}
           members={members}
           payments={payments}
           defaultAmount={workspace?.settings.defaultAmount ?? 100}
@@ -500,6 +599,8 @@ export default function WorkspacePage() {
           onOpenBulkJsonModal={() => setIsBulkJsonOpen(true)}
           onOpenWhatsAppModal={() => setIsWhatsAppOpen(true)}
           onOpenExpensesModal={() => setIsExpenseOpen(true)}
+          onOpenArchivedModal={() => setIsArchivedModalOpen(true)}
+          archivedCount={archivedColumns.length}
           newlyCreatedColId={newlyCreatedColId}
         />
       </main>
@@ -521,7 +622,27 @@ export default function WorkspacePage() {
         onSave={handleSaveColumn}
         onDelete={handleDeleteColumn}
         onMarkAllPaid={handleMarkAllPaid}
+        onToggleArchive={handleToggleArchiveColumn}
         currency={workspace?.settings?.currency || "ج.م"}
+      />
+
+      <ArchivedColumnsModal
+        isOpen={isArchivedModalOpen}
+        onClose={() => setIsArchivedModalOpen(false)}
+        archivedColumns={archivedColumns}
+        members={members}
+        payments={payments}
+        currency={workspace?.settings?.currency || "ج.م"}
+        onRestoreColumn={(colId) => handleToggleArchiveColumn(colId, false)}
+        onOpenColumnModal={(col) => {
+          setEditingColumn(col);
+          setIsColumnModalOpen(true);
+        }}
+        onDeleteColumn={handleDeleteColumn}
+        autoArchiveCompleted={autoArchiveCompleted}
+        onToggleAutoArchive={handleToggleAutoArchive}
+        showArchivedInTable={showArchivedInTable}
+        onToggleShowArchivedInTable={setShowArchivedInTable}
       />
 
       <CellDetailModal

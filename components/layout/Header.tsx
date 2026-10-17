@@ -38,10 +38,14 @@ export default function Header({
     setIsLoggingOut(true);
     try {
       await fetch("/api/auth/logout", { method: "POST" });
+      localStorage.removeItem("madyafa_auth");
+      localStorage.removeItem("madyafa_user_name");
       router.push("/login");
       router.refresh();
     } catch (e) {
       console.error(e);
+      localStorage.removeItem("madyafa_auth");
+      router.push("/login");
     } finally {
       setIsLoggingOut(false);
     }

@@ -115,7 +115,7 @@ ${
             >
               {columns.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.title} ({c.amount} {currency})
+                  {c.title} {c.isArchived ? "📦 (مؤرشف)" : ""} ({c.amount} {currency})
                 </option>
               ))}
             </select>

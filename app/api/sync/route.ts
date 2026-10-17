@@ -76,6 +76,8 @@ export async function POST(req: NextRequest) {
                 title: payload.title,
                 amount: Number(payload.amount) || 100,
                 orderIndex: payload.orderIndex ?? 0,
+                isArchived: payload.isArchived ?? false,
+                archivedAt: payload.archivedAt ? new Date(payload.archivedAt) : undefined,
               },
               { upsert: true, new: true, setDefaultsOnInsert: true }
             );

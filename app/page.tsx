@@ -10,19 +10,33 @@ export default function RootHomePage() {
 
   useEffect(() => {
     async function checkAuth() {
+      // If client is already offline, check cached authentication status
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        const isAuth = localStorage.getItem('madyafa_auth') === 'true';
+        router.replace(isAuth ? '/dashboard' : '/login');
+        setLoading(false);
+        return;
+      }
+
       try {
         const res = await fetch('/api/auth/me');
         if (res.ok) {
           const data = await res.json();
           if (data?.user) {
+            localStorage.setItem('madyafa_auth', 'true');
+            if (data.user.name) {
+              localStorage.setItem('madyafa_user_name', data.user.name);
+            }
             router.replace('/dashboard');
             return;
           }
         }
+        localStorage.removeItem('madyafa_auth');
         router.replace('/login');
       } catch (e) {
-        console.error('Auth check error:', e);
-        router.replace('/login');
+        console.warn('Auth check network warning (offline mode):', e);
+        const isAuth = localStorage.getItem('madyafa_auth') === 'true';
+        router.replace(isAuth ? '/dashboard' : '/login');
       } finally {
         setLoading(false);
       }

@@ -3,45 +3,45 @@
   "name": "دفتر المضيافة الذكي | متابعة التحصيل",
   "short_name": "المضيافة",
   "description": "تطبيق إدارة ومتابعة تحصيل اشتراكات والتزامات المضيافة الذكي أوفلاين بالكامل",
-  "start_url": "./index.html",
-  "scope": "./",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#042f2e",
+  "background_color": "#070a13",
   "theme_color": "#0f766e",
   "lang": "ar",
   "dir": "rtl",
   "icons": [
     {
-      "src": "./favicon-16x16.png",
+      "src": "/favicon-16x16.png",
       "sizes": "16x16",
       "type": "image/png"
     },
     {
-      "src": "./favicon-32x32.png",
+      "src": "/favicon-32x32.png",
       "sizes": "32x32",
       "type": "image/png"
     },
     {
-      "src": "./icon-192.png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icon-maskable-192.png",
+      "src": "/icon-maskable-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "./icon-512.png",
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icon-maskable-512.png",
+      "src": "/icon-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -54,25 +54,13 @@
   ],
   "shortcuts": [
     {
-      "name": "إضافة عضو جديد",
-      "short_name": "عضو جديد",
-      "description": "فتح نافذة إضافة عضو لدفتر المضيافة",
-      "url": "./index.html?action=add-member",
+      "name": "لوحة التحكم",
+      "short_name": "الرئيسية",
+      "description": "فتح لوحة تحكم المضيافة",
+      "url": "/dashboard",
       "icons": [
         {
-          "src": "./icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": "تقرير واتساب",
-      "short_name": "واتساب",
-      "description": "مشاركة التقرير عبر واتساب",
-      "url": "./index.html?action=whatsapp",
-      "icons": [
-        {
-          "src": "./icon-192.png",
+          "src": "/icon-192.png",
           "sizes": "192x192"
         }
       ]
