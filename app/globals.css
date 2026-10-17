@@ -1,0 +1,146 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-cairo: 'Cairo', sans-serif;
+  color-scheme: dark;
+}
+
+* {
+  font-family: var(--font-cairo);
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+  background-color: #070a13;
+  color: #f1f5f9;
+}
+
+body {
+  overscroll-behavior-y: auto;
+  min-height: 100vh;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #0b1120;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0f766e;
+}
+
+/* Table Scroll Container */
+.table-scroll-container {
+  overflow-x: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  width: 100%;
+  cursor: grab;
+  user-select: auto;
+}
+
+.table-scroll-container.is-dragging {
+  cursor: grabbing !important;
+  user-select: none !important;
+}
+
+.table-scroll-container.is-dragging * {
+  cursor: grabbing !important;
+  user-select: none !important;
+}
+
+/* Sticky Columns and Headers */
+thead tr th {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: #0d1527;
+  border-bottom: 1px solid #1e293b;
+}
+
+thead tr th.sticky-col-right {
+  position: sticky;
+  top: 0;
+  right: 0;
+  z-index: 40;
+  background-color: #0f1a30;
+  box-shadow: -4px 2px 12px -2px rgba(0, 0, 0, 0.5);
+  border-left: 1px solid #1e293b;
+}
+
+tfoot tr td {
+  position: sticky;
+  bottom: 0;
+  z-index: 15;
+  background-color: #0b1424;
+  border-top: 2px solid #0f766e;
+}
+
+tfoot tr td.sticky-col-right {
+  position: sticky;
+  bottom: 0;
+  right: 0;
+  z-index: 35;
+  background-color: #0d182b;
+  box-shadow: -4px -2px 12px -2px rgba(0, 0, 0, 0.5);
+  border-left: 1px solid #1e293b;
+}
+
+tbody tr td.sticky-col-right {
+  position: sticky;
+  right: 0;
+  z-index: 10;
+  background-color: #090f1d;
+  box-shadow: -4px 0 10px -2px rgba(0, 0, 0, 0.4);
+  border-left: 1px solid #1e293b;
+}
+
+tbody tr:hover td.sticky-col-right {
+  background-color: #0e172a;
+}
+
+/* Left Fade Shadow Indicator when columns overflow */
+.table-wrapper-left-shadow::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 32px;
+  pointer-events: none;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.7), transparent);
+  z-index: 25;
+  border-top-left-radius: 1rem;
+  border-bottom-left-radius: 1rem;
+  animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes columnPulseDark {
+  0% { background-color: rgba(20, 184, 166, 0.35); }
+  50% { background-color: rgba(20, 184, 166, 0.2); }
+  100% { background-color: transparent; }
+}
+
+.new-col-flash {
+  animation: columnPulseDark 2s ease-out;
+}
