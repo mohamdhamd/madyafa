@@ -6,9 +6,17 @@ interface BulkJsonModalProps {
   isOpen: boolean;
   onClose: () => void;
   onImport: (members: Array<{ name: string; phone?: string; generalNote?: string }>) => void;
+  existingMembers?: Array<{ name: string }>;
+  preventDuplicate?: boolean;
 }
 
-export default function BulkJsonModal({ isOpen, onClose, onImport }: BulkJsonModalProps) {
+export default function BulkJsonModal({
+  isOpen,
+  onClose,
+  onImport,
+  existingMembers = [],
+  preventDuplicate = true,
+}: BulkJsonModalProps) {
   const [jsonText, setJsonText] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -59,22 +67,51 @@ export default function BulkJsonModal({ isOpen, onClose, onImport }: BulkJsonMod
         return;
       }
 
+      const normalizeArabic = (s: string) =>
+        s.trim().toLowerCase().replace(/[إأآا]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي");
+
+      const existingSet = new Set(
+        existingMembers.map((m) => normalizeArabic(m.name))
+      );
+      const seenInBatch = new Set<string>();
+
       const formatted: Array<{ name: string; phone?: string; generalNote?: string }> = [];
+      let skippedCount = 0;
 
       for (const item of parsed) {
+        let nameVal = "";
+        let phoneVal = "";
+        let noteVal = "";
+
         if (typeof item === "string" && item.trim()) {
-          formatted.push({ name: item.trim() });
+          nameVal = item.trim();
         } else if (typeof item === "object" && item !== null && item.name) {
+          nameVal = String(item.name).trim();
+          phoneVal = item.phone ? String(item.phone).trim() : "";
+          noteVal = item.note || item.generalNote ? String(item.note || item.generalNote).trim() : "";
+        }
+
+        if (nameVal) {
+          const norm = normalizeArabic(nameVal);
+          if (preventDuplicate && (existingSet.has(norm) || seenInBatch.has(norm))) {
+            skippedCount++;
+            continue;
+          }
+          seenInBatch.add(norm);
           formatted.push({
-            name: String(item.name).trim(),
-            phone: item.phone ? String(item.phone).trim() : "",
-            generalNote: item.note || item.generalNote ? String(item.note || item.generalNote).trim() : "",
+            name: nameVal,
+            phone: phoneVal,
+            generalNote: noteVal,
           });
         }
       }
 
       if (formatted.length === 0) {
-        setErrorMsg("لم يتم العثور على أي أسماء صالحة داخل كود الـ JSON");
+        if (skippedCount > 0) {
+          setErrorMsg(`جميع الأسماء (${skippedCount} اسم) مسجلة بالفعل في المضيافة! تم تخطيها لمنع التكرار.`);
+        } else {
+          setErrorMsg("لم يتم العثور على أي أسماء صالحة داخل كود الـ JSON");
+        }
         return;
       }
 

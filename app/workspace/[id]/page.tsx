@@ -544,6 +544,129 @@ export default function WorkspacePage() {
     showToast("تم تحديث إعدادات المضيافة");
   };
 
+  // Clean Duplicate Members
+  const handleCleanDuplicates = async () => {
+    const normalizeArabic = (text: string) => {
+      return text
+        .trim()
+        .toLowerCase()
+        .replace(/[إأآا]/g, "ا")
+        .replace(/ة/g, "ه")
+        .replace(/ى/g, "ي")
+        .replace(/\s+/g, " ");
+    };
+
+    const seenMap = new Map<string, LocalMember>();
+    const duplicateMembers: LocalMember[] = [];
+
+    for (const member of members) {
+      const norm = normalizeArabic(member.name);
+      if (seenMap.has(norm)) {
+        duplicateMembers.push(member);
+      } else {
+        seenMap.set(norm, member);
+      }
+    }
+
+    if (duplicateMembers.length === 0) {
+      alert("تهانينا! فحصنا جميع الأسماء ولا توجد أي أسماء مكررة في هذه المضيافة 👍");
+      return;
+    }
+
+    const dupNames = Array.from(new Set(duplicateMembers.map((m) => m.name)));
+    const confirmed = window.confirm(
+      `تم العثور على ${duplicateMembers.length} اسم مكرر في المضيافة:\n(${dupNames.join(" - ")})\n\nهل تريد إزالة هذه التكرارات والإبقاء على النسخة الأولى فقط؟`
+    );
+    if (!confirmed) return;
+
+    const dupIds = new Set(duplicateMembers.map((m) => m.id));
+    setMembers((prev) => prev.filter((m) => !dupIds.has(m.id)));
+
+    for (const dup of duplicateMembers) {
+      await syncEngine.optimisticDeleteMember(dup.id, workspaceId);
+    }
+
+    showToast(`تم إزالة ${duplicateMembers.length} اسم مكرر بنجاح! 🧹✨`);
+  };
+
+  // Delete All Members (Reset member roster)
+  const handleDeleteAllMembers = async () => {
+    if (members.length === 0) {
+      alert("قائمة الأعضاء فارغة بالفعل.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `تحذير هام جداً:\nهل أنت متأكد من رغبتك في حذف جميع أسماء الأعضاء (${members.length} عضو) وسجلات دفعهم بالكامل؟\n\nتنبيه: لن يتم حذف الجمعية أو الأعمدة، ولكن سيتم تصفير قائمة الأسماء تماماً لبدء دورة جديدة.`
+    );
+    if (!confirmed) return;
+
+    setIsSettingsOpen(false);
+
+    // Optimistically clear local state
+    setMembers([]);
+    setPayments({});
+
+    try {
+      // 1. Delete locally from Dexie
+      await localDb.members.where("workspaceId").equals(workspaceId).delete();
+      await localDb.payments.where("workspaceId").equals(workspaceId).delete();
+
+      // 2. Delete on server if online
+      if (typeof navigator !== "undefined" && navigator.onLine) {
+        await fetch(`/api/workspaces/${workspaceId}/members`, { method: "DELETE" });
+      } else {
+        for (const m of members) {
+          await syncEngine.queueOperation("delete", "member", m.id, workspaceId, { id: m.id });
+        }
+      }
+
+      showToast("تم حذف جميع الأعضاء وتصفير القائمة بنجاح 🧹");
+    } catch (e: any) {
+      console.error("Error deleting all members:", e);
+      showToast("حدث خطأ أثناء محاولة تصفير قائمة الأعضاء");
+    }
+  };
+
+  // Delete Workspace
+  const handleDeleteWorkspace = async () => {
+    const confirmed = window.confirm(
+      `تحذير نهائي:\nهل أنت متأكد من حذف هذه المضيافة ("${workspace?.title}") بالكامل نهائياً؟\n\nتنبيه: سيتم حذف كافة الأعضاء والأعمدة والدفعات والمصروفات فوراً ولا يمكن التراجع عن هذا الإجراء.`
+    );
+    if (!confirmed) return;
+
+    setIsSettingsOpen(false);
+
+    try {
+      // 1. Delete from Dexie
+      await localDb.workspaces.delete(workspaceId);
+      await localDb.members.where("workspaceId").equals(workspaceId).delete();
+      await localDb.columns.where("workspaceId").equals(workspaceId).delete();
+      await localDb.payments.where("workspaceId").equals(workspaceId).delete();
+      await localDb.expenses.where("workspaceId").equals(workspaceId).delete();
+
+      // 2. Remove default workspace if set
+      if (typeof window !== "undefined") {
+        const defaultId = localStorage.getItem("madyafa_default_workspace");
+        if (defaultId === workspaceId) {
+          localStorage.removeItem("madyafa_default_workspace");
+        }
+      }
+
+      // 3. Delete from server if online
+      if (typeof navigator !== "undefined" && navigator.onLine) {
+        await fetch(`/api/workspaces/${workspaceId}`, { method: "DELETE" });
+      } else {
+        await syncEngine.queueOperation("delete", "workspace", workspaceId, workspaceId, { id: workspaceId });
+      }
+
+      router.push("/dashboard");
+    } catch (e: any) {
+      console.error("Error deleting workspace:", e);
+      showToast("حدث خطأ أثناء حذف المضيافة");
+    }
+  };
+
   // Expenses Save / Delete
   const handleAddExpense = async (exp: { title: string; amount: number; date: string; note: string }) => {
     const expId = `exp_${Date.now()}`;
@@ -680,6 +803,8 @@ export default function WorkspacePage() {
         onSave={handleSaveMember}
         onDelete={handleDeleteMember}
         onMoveOrder={handleMoveMemberOrder}
+        existingMembers={members}
+        preventDuplicate={workspace?.settings?.preventDuplicateMembers ?? true}
       />
 
       <ColumnModal
@@ -727,6 +852,8 @@ export default function WorkspacePage() {
         isOpen={isBulkJsonOpen}
         onClose={() => setIsBulkJsonOpen(false)}
         onImport={handleBulkImport}
+        existingMembers={members}
+        preventDuplicate={workspace?.settings?.preventDuplicateMembers ?? true}
       />
 
       <WhatsAppModal
@@ -745,6 +872,10 @@ export default function WorkspacePage() {
         onClose={() => setIsSettingsOpen(false)}
         workspace={workspace}
         onSave={handleSaveSettings}
+        onDeleteAllMembers={handleDeleteAllMembers}
+        onDeleteWorkspace={handleDeleteWorkspace}
+        onCleanDuplicateMembers={handleCleanDuplicates}
+        membersCount={members.length}
       />
 
       <ExpenseModal

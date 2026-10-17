@@ -10,10 +10,15 @@ export default function RootHomePage() {
 
   useEffect(() => {
     async function checkAuth() {
+      function getTargetDestination(): string {
+        const defaultWs = typeof window !== 'undefined' ? localStorage.getItem('madyafa_default_workspace') : null;
+        return defaultWs ? `/workspace/${defaultWs}` : '/dashboard';
+      }
+
       // If client is already offline, check cached authentication status
       if (typeof navigator !== 'undefined' && !navigator.onLine) {
         const isAuth = localStorage.getItem('madyafa_auth') === 'true';
-        router.replace(isAuth ? '/dashboard' : '/login');
+        router.replace(isAuth ? getTargetDestination() : '/login');
         setLoading(false);
         return;
       }
@@ -27,7 +32,7 @@ export default function RootHomePage() {
             if (data.user.name) {
               localStorage.setItem('madyafa_user_name', data.user.name);
             }
-            router.replace('/dashboard');
+            router.replace(getTargetDestination());
             return;
           }
         }
@@ -36,7 +41,7 @@ export default function RootHomePage() {
       } catch (e) {
         console.warn('Auth check network warning (offline mode):', e);
         const isAuth = localStorage.getItem('madyafa_auth') === 'true';
-        router.replace(isAuth ? '/dashboard' : '/login');
+        router.replace(isAuth ? getTargetDestination() : '/login');
       } finally {
         setLoading(false);
       }

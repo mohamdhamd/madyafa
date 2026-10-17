@@ -7,6 +7,7 @@ export interface IWorkspaceSettings {
   publicSlug: string;
   publicPin?: string;
   autoColumnMode?: "on_complete" | "on_first_check" | "manual";
+  preventDuplicateMembers?: boolean;
 }
 
 export interface IWorkspace extends Document {
@@ -36,6 +37,7 @@ const WorkspaceSchema = new Schema<IWorkspace>(
         enum: ["on_complete", "on_first_check", "manual"],
         default: "on_complete",
       },
+      preventDuplicateMembers: { type: Boolean, default: true },
     },
   },
   { timestamps: true }

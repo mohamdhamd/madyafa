@@ -10,6 +10,8 @@ interface MemberModalProps {
   onDelete?: (id: string) => void;
   onMoveOrder?: (id: string, delta: number) => void;
   editingMember?: LocalMember | null;
+  existingMembers?: LocalMember[];
+  preventDuplicate?: boolean;
 }
 
 export default function MemberModal({
@@ -19,12 +21,16 @@ export default function MemberModal({
   onDelete,
   onMoveOrder,
   editingMember,
+  existingMembers = [],
+  preventDuplicate = true,
 }: MemberModalProps) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [generalNote, setGeneralNote] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
+    setErrorMsg("");
     if (editingMember) {
       setName(editingMember.name || "");
       setPhone(editingMember.phone || "");
@@ -38,12 +44,29 @@ export default function MemberModal({
 
   if (!isOpen) return null;
 
+  const normalizeArabic = (s: string) =>
+    s.trim().toLowerCase().replace(/[إأآا]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي");
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    setErrorMsg("");
+    const trimmed = name.trim();
+    if (!trimmed) return;
+
+    if (preventDuplicate && existingMembers.length > 0) {
+      const norm = normalizeArabic(trimmed);
+      const exists = existingMembers.some(
+        (m) => m.id !== editingMember?.id && normalizeArabic(m.name) === norm
+      );
+      if (exists) {
+        setErrorMsg(`عذراً، يوجد عضو آخر مسجل بنفس هذا الاسم بالفعل: "${trimmed}"`);
+        return;
+      }
+    }
+
     onSave({
       id: editingMember?.id,
-      name: name.trim(),
+      name: trimmed,
       phone: phone.trim(),
       generalNote: generalNote.trim(),
     });
@@ -68,7 +91,14 @@ export default function MemberModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-4 space-y-3.5">
+        {errorMsg && (
+          <div className="mt-3 p-2.5 rounded-xl bg-rose-950/70 border border-rose-800/80 text-rose-300 text-xs font-semibold flex items-center gap-2">
+            <i className="fa-solid fa-circle-exclamation text-rose-400 text-sm shrink-0"></i>
+            <span>{errorMsg}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="mt-3.5 space-y-3.5">
           <div>
             <label className="block text-xs font-bold text-slate-300 mb-1">
               اسم العضو <span className="text-rose-500">*</span>

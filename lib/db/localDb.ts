@@ -12,6 +12,7 @@ export interface LocalWorkspace {
     publicSlug: string;
     publicPin?: string;
     autoColumnMode?: "on_complete" | "on_first_check" | "manual";
+    preventDuplicateMembers?: boolean;
   };
   createdAt?: string;
   updatedAt?: string;

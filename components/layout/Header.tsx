@@ -55,13 +55,25 @@ export default function Header({
     <header className="bg-gradient-to-l from-slate-950 via-night-900 to-night-850 border-b border-slate-800 text-slate-100 shadow-xl sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 flex items-center justify-between gap-2">
         {/* Brand & Workspace Switcher */}
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
           <Link
             href="/dashboard"
             className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-teal-950/70 border border-teal-500/30 flex items-center justify-center shrink-0 shadow-md shadow-teal-950/50 hover:border-teal-400 transition"
+            title="الصفحة الرئيسية - لوحة الجمعيات"
           >
             <img src="/favicon.svg" alt="المضيافة" className="w-6 h-6 object-contain drop-shadow" />
           </Link>
+
+          {currentWorkspace && (
+            <Link
+              href="/dashboard"
+              className="h-8 px-2 sm:px-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-teal-500/40 text-slate-300 hover:text-teal-300 flex items-center gap-1.5 text-xs font-bold transition active:scale-95 shrink-0 shadow-sm"
+              title="الرجوع إلى لوحة جميع الجمعيات والمضايف"
+            >
+              <i className="fa-solid fa-arrow-right text-[10px] text-teal-400"></i>
+              <span className="hidden xs:inline sm:inline">الجمعيات</span>
+            </Link>
+          )}
 
           <div className="min-w-0 flex-1">
             {currentWorkspace ? (

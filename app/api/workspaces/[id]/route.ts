@@ -131,6 +131,9 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
       if (settings.publicSlug) workspace.settings.publicSlug = settings.publicSlug.trim().toLowerCase();
       if (settings.publicPin !== undefined) workspace.settings.publicPin = settings.publicPin.trim();
       if (settings.autoColumnMode) workspace.settings.autoColumnMode = settings.autoColumnMode;
+      if (settings.preventDuplicateMembers !== undefined) {
+        workspace.settings.preventDuplicateMembers = Boolean(settings.preventDuplicateMembers);
+      }
     }
 
     await workspace.save();

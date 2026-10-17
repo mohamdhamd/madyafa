@@ -29,6 +29,13 @@ export default function DashboardPage() {
   const [userName, setUserName] = useState("");
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [defaultWorkspaceId, setDefaultWorkspaceId] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
 
   // Form state for creating a new workspace
   const [newTitle, setNewTitle] = useState("");
@@ -131,7 +138,65 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchUser();
     fetchWorkspaces();
+    if (typeof window !== "undefined") {
+      setDefaultWorkspaceId(localStorage.getItem("madyafa_default_workspace"));
+    }
   }, []);
+
+  const handleToggleDefaultWorkspace = (id: string, title: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (typeof window === "undefined") return;
+
+    if (defaultWorkspaceId === id) {
+      localStorage.removeItem("madyafa_default_workspace");
+      setDefaultWorkspaceId(null);
+      showToast(`تم إلغاء تعيين "${title}" كصفحة افتراضية`);
+    } else {
+      localStorage.setItem("madyafa_default_workspace", id);
+      setDefaultWorkspaceId(id);
+      showToast(`تم تعيين "${title}" كصفحة رئيسية تفتح تلقائياً ⭐️`);
+    }
+  };
+
+  const handleDeleteWorkspace = async (id: string, title: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const confirmed = window.confirm(
+      `هل أنت متأكد من حذف مضيافة "${title}" نهائياً؟\n\nتنبيه: سيتم حذف جميع أسماء الأعضاء والأعمدة وسجلات الدفع والمصروفات التابعة لها، ولا يمكن التراجع عن هذا الإجراء.`
+    );
+    if (!confirmed) return;
+
+    // Optimistically remove from state
+    setWorkspaces((prev) => prev.filter((w) => w.id !== id));
+
+    // Clear default workspace if it was this one
+    if (defaultWorkspaceId === id) {
+      localStorage.removeItem("madyafa_default_workspace");
+      setDefaultWorkspaceId(null);
+    }
+
+    try {
+      // 1. Delete locally from Dexie
+      await localDb.workspaces.delete(id);
+      await localDb.members.where("workspaceId").equals(id).delete();
+      await localDb.columns.where("workspaceId").equals(id).delete();
+      await localDb.payments.where("workspaceId").equals(id).delete();
+      await localDb.expenses.where("workspaceId").equals(id).delete();
+
+      // 2. Delete on server if online
+      if (typeof navigator !== "undefined" && navigator.onLine) {
+        await fetch(`/api/workspaces/${id}`, { method: "DELETE" });
+      } else {
+        await syncEngine.queueOperation("delete", "workspace", id, id, { id });
+      }
+      showToast(`تم حذف مضيافة "${title}" بنجاح 🗑️`);
+    } catch (err) {
+      console.error("Error deleting workspace:", err);
+      showToast("حدث خطأ أثناء محاولة حذف المضيافة");
+    }
+  };
 
   const handleCreateWorkspace = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -208,6 +273,14 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-night-950 text-slate-100 flex flex-col">
       <Header userName={userName} />
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-slate-900 border border-teal-500/50 text-teal-300 text-xs sm:text-sm font-bold px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2 animate-bounce">
+          <i className="fa-solid fa-circle-info text-teal-400"></i>
+          <span>{toastMessage}</span>
+        </div>
+      )}
 
       <main className="max-w-7xl w-full mx-auto px-4 py-6 flex-1">
         {/* Welcome & Global Overview Section */}
@@ -321,12 +394,45 @@ export default function DashboardPage() {
                 >
                   <div>
                     <div className="flex items-start justify-between gap-2 mb-3">
-                      <div className="w-10 h-10 rounded-2xl bg-teal-950/80 border border-teal-500/30 flex items-center justify-center text-teal-400 font-bold shrink-0">
-                        <i className="fa-solid fa-mosque text-sm"></i>
+                      <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-2xl bg-teal-950/80 border border-teal-500/30 flex items-center justify-center text-teal-400 font-bold shrink-0">
+                          <i className="fa-solid fa-mosque text-sm"></i>
+                        </div>
+                        {defaultWorkspaceId === ws.id && (
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center gap-1 shadow-sm">
+                            <i className="fa-solid fa-star text-[9px] text-amber-400"></i>
+                            <span>افتراضية</span>
+                          </span>
+                        )}
                       </div>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-300">
-                        {ws.isOwner ? "المالك" : "مشرف"}
-                      </span>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={(e) => handleToggleDefaultWorkspace(ws.id, ws.title, e)}
+                          title={defaultWorkspaceId === ws.id ? "إلغاء التعيين كصفحة رئيسية" : "تعيين كصفحة رئيسية تفتح تلقائياً"}
+                          className={`w-8 h-8 rounded-xl flex items-center justify-center transition border ${
+                            defaultWorkspaceId === ws.id
+                              ? "bg-amber-950/50 border-amber-500/60 text-amber-400 hover:bg-amber-900/60 shadow-sm"
+                              : "bg-slate-800/80 border-slate-700/80 text-slate-400 hover:text-amber-300 hover:border-slate-600"
+                          } active:scale-95`}
+                        >
+                          <i className={defaultWorkspaceId === ws.id ? "fa-solid fa-star text-xs" : "fa-regular fa-star text-xs"}></i>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => handleDeleteWorkspace(ws.id, ws.title, e)}
+                          title="حذف هذه المضيافة نهائياً"
+                          className="w-8 h-8 rounded-xl bg-slate-800/80 border border-slate-700/80 text-slate-400 hover:text-rose-400 hover:border-rose-900/60 hover:bg-rose-950/40 flex items-center justify-center transition active:scale-95"
+                        >
+                          <i className="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+
+                        <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300">
+                          {ws.isOwner ? "المالك" : "مشرف"}
+                        </span>
+                      </div>
                     </div>
 
                     <h4 className="font-black text-base text-slate-100 group-hover:text-teal-400 transition truncate">

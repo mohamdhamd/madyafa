@@ -17,8 +17,13 @@ interface WorkspaceSettingsModalProps {
       publicSlug: string;
       publicPin?: string;
       autoColumnMode?: "on_complete" | "on_first_check" | "manual";
+      preventDuplicateMembers?: boolean;
     };
   }) => void;
+  onDeleteAllMembers?: () => void;
+  onDeleteWorkspace?: () => void;
+  onCleanDuplicateMembers?: () => void;
+  membersCount?: number;
 }
 
 export default function WorkspaceSettingsModal({
@@ -26,6 +31,10 @@ export default function WorkspaceSettingsModal({
   onClose,
   workspace,
   onSave,
+  onDeleteAllMembers,
+  onDeleteWorkspace,
+  onCleanDuplicateMembers,
+  membersCount = 0,
 }: WorkspaceSettingsModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -35,6 +44,8 @@ export default function WorkspaceSettingsModal({
   const [publicSlug, setPublicSlug] = useState("");
   const [publicPin, setPublicPin] = useState("");
   const [autoColumnMode, setAutoColumnMode] = useState<"on_complete" | "on_first_check" | "manual">("on_complete");
+  const [preventDuplicateMembers, setPreventDuplicateMembers] = useState(true);
+  const [isDefaultWorkspace, setIsDefaultWorkspace] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -47,6 +58,12 @@ export default function WorkspaceSettingsModal({
       setPublicSlug(workspace.settings?.publicSlug || "");
       setPublicPin(workspace.settings?.publicPin || "");
       setAutoColumnMode(workspace.settings?.autoColumnMode || "on_complete");
+      setPreventDuplicateMembers(workspace.settings?.preventDuplicateMembers ?? true);
+
+      if (typeof window !== "undefined") {
+        const defaultId = localStorage.getItem("madyafa_default_workspace");
+        setIsDefaultWorkspace(defaultId === workspace.id);
+      }
     }
   }, [workspace, isOpen]);
 
@@ -66,6 +83,17 @@ export default function WorkspaceSettingsModal({
     e.preventDefault();
     if (!title.trim() || !publicSlug.trim()) return;
 
+    if (typeof window !== "undefined") {
+      if (isDefaultWorkspace) {
+        localStorage.setItem("madyafa_default_workspace", workspace.id);
+      } else {
+        const currentDef = localStorage.getItem("madyafa_default_workspace");
+        if (currentDef === workspace.id) {
+          localStorage.removeItem("madyafa_default_workspace");
+        }
+      }
+    }
+
     onSave({
       title: title.trim(),
       description: description.trim(),
@@ -76,6 +104,7 @@ export default function WorkspaceSettingsModal({
         publicSlug: publicSlug.trim().toLowerCase(),
         publicPin: publicPin.trim(),
         autoColumnMode,
+        preventDuplicateMembers,
       },
     });
     onClose();
@@ -206,6 +235,64 @@ export default function WorkspaceSettingsModal({
             </div>
           </div>
 
+          {/* Preferences & Member Rules */}
+          <div className="pt-2 border-t border-slate-800 space-y-2">
+            <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center gap-1.5">
+              <i className="fa-solid fa-sliders text-teal-400 text-xs"></i>
+              <span>قواعد وتفضيلات المضيافة:</span>
+            </label>
+
+            <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 cursor-pointer transition">
+              <input
+                type="checkbox"
+                checked={isDefaultWorkspace}
+                onChange={(e) => setIsDefaultWorkspace(e.target.checked)}
+                className="mt-0.5 rounded text-teal-500 focus:ring-teal-500 w-4 h-4 bg-slate-900 border-slate-700"
+              />
+              <div>
+                <div className="font-bold text-slate-200 text-xs flex items-center gap-1.5">
+                  <span>⭐️ تعيين كصفحة رئيسية افتراضية</span>
+                </div>
+                <div className="text-[11px] text-slate-400 mt-0.5">
+                  تفتح هذه المضيافة مباشرة عند الدخول للتطبيق أو الموقع بدلاً من لوحة التحكم.
+                </div>
+              </div>
+            </label>
+
+            <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 cursor-pointer transition">
+              <input
+                type="checkbox"
+                checked={preventDuplicateMembers}
+                onChange={(e) => setPreventDuplicateMembers(e.target.checked)}
+                className="mt-0.5 rounded text-teal-500 focus:ring-teal-500 w-4 h-4 bg-slate-900 border-slate-700"
+              />
+              <div>
+                <div className="font-bold text-slate-200 text-xs flex items-center gap-1.5">
+                  <span>🛡️ منع تكرار أسماء الأعضاء</span>
+                </div>
+                <div className="text-[11px] text-slate-400 mt-0.5">
+                  فحص تلقائي يمنع تسجيل اسم مسجل بالفعل مع تطابق تشابه الحروف (أ/إ/آ، ة/ه، ى/ي).
+                </div>
+              </div>
+            </label>
+
+            {onCleanDuplicateMembers && (
+              <button
+                type="button"
+                onClick={onCleanDuplicateMembers}
+                className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-teal-500/50 hover:bg-teal-950/20 text-slate-300 text-xs font-bold transition group"
+              >
+                <span className="flex items-center gap-2">
+                  <i className="fa-solid fa-broom text-teal-400 group-hover:rotate-12 transition-transform"></i>
+                  <span>فحص وإزالة الأسماء المكررة الحالية</span>
+                </span>
+                <span className="text-[11px] bg-slate-800 px-2 py-0.5 rounded-md text-slate-400 group-hover:text-teal-300">
+                  {membersCount} عضو
+                </span>
+              </button>
+            )}
+          </div>
+
           {/* Public Transparency Link Section */}
           <div className="pt-2 border-t border-slate-800">
             <label className="block text-xs font-bold text-teal-400 mb-1 flex items-center gap-1.5">
@@ -242,6 +329,46 @@ export default function WorkspaceSettingsModal({
               placeholder="اتركه فارغاً إذا كنت تريد الصفحة متاحة مباشرة لأي شخص يملك الرابط"
               className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
+          </div>
+
+          {/* Danger Zone */}
+          <div className="pt-3 border-t border-rose-900/40 space-y-2">
+            <div className="text-[11px] font-bold text-rose-400 flex items-center gap-1.5 mb-1">
+              <i className="fa-solid fa-triangle-exclamation text-rose-500"></i>
+              <span>منطقة العمليات الحساسة (Danger Zone)</span>
+            </div>
+
+            {onDeleteAllMembers && (
+              <button
+                type="button"
+                onClick={onDeleteAllMembers}
+                className="w-full flex items-center justify-between p-2.5 rounded-xl bg-rose-950/20 border border-rose-900/40 hover:bg-rose-950/40 text-rose-300 text-xs font-bold transition"
+              >
+                <span className="flex items-center gap-2">
+                  <i className="fa-solid fa-users-slash text-rose-400"></i>
+                  <span>حذف جميع أسماء الأعضاء (تصفير القائمة)</span>
+                </span>
+                <span className="text-[10px] text-rose-400 bg-rose-950/60 px-2 py-0.5 rounded">
+                  {membersCount} عضو
+                </span>
+              </button>
+            )}
+
+            {onDeleteWorkspace && (
+              <button
+                type="button"
+                onClick={onDeleteWorkspace}
+                className="w-full flex items-center justify-between p-2.5 rounded-xl bg-rose-950/30 border border-rose-800/60 hover:bg-rose-900/50 text-rose-200 text-xs font-bold transition"
+              >
+                <span className="flex items-center gap-2">
+                  <i className="fa-solid fa-trash-can text-rose-400"></i>
+                  <span>حذف هذه المضيافة بالكامل نهائياً</span>
+                </span>
+                <span className="text-[10px] text-rose-300 bg-rose-900/70 px-2 py-0.5 rounded">
+                  حذف شامل
+                </span>
+              </button>
+            )}
           </div>
 
           <div className="pt-3 flex items-center gap-2">
