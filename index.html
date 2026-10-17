@@ -42,52 +42,118 @@
         body {
             background-color: #f1f5f9;
             color: #0f172a;
-            overscroll-behavior-y: none;
+            overscroll-behavior-y: auto;
             padding-bottom: env(safe-area-inset-bottom, 80px);
         }
 
-        /* Custom Scrollbar for smooth mobile table scrolling */
+        /* Custom Scrollbar and Scroll Container */
         .table-scroll-container {
             overflow-x: auto;
+            overflow-y: auto;
             -webkit-overflow-scrolling: touch;
-            scroll-behavior: smooth;
             position: relative;
+            width: 100%;
+            max-height: calc(100vh - 240px);
+            min-height: 280px;
+            overscroll-behavior: contain;
+            cursor: grab;
+            user-select: auto;
+        }
+
+        .table-scroll-container.is-dragging {
+            cursor: grabbing !important;
+            user-select: none !important;
+        }
+
+        .table-scroll-container.is-dragging * {
+            cursor: grabbing !important;
+            user-select: none !important;
         }
 
         .table-scroll-container::-webkit-scrollbar {
-            height: 6px;
-            width: 6px;
+            height: 7px;
+            width: 7px;
+            display: block;
         }
         .table-scroll-container::-webkit-scrollbar-track {
-            background: #e2e8f0;
+            background: #f1f5f9;
             border-radius: 8px;
+            margin: 0 4px;
         }
         .table-scroll-container::-webkit-scrollbar-thumb {
-            background: #0d9488;
+            background: #0f766e;
             border-radius: 8px;
         }
+        .table-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: #0d9488;
+        }
 
-        /* Sticky Right Column (Member Name & Index) for RTL Mobile */
-        .sticky-col-right {
+        /* Sticky Columns and Headers */
+        thead tr th {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background-color: #f8fafc;
+            box-shadow: 0 2px 4px -1px rgba(15, 23, 42, 0.05);
+        }
+
+        thead tr th.sticky-col-right {
+            position: sticky;
+            top: 0;
+            right: 0;
+            z-index: 40;
+            background-color: #f1f5f9;
+            box-shadow: -4px 2px 10px -2px rgba(15, 23, 42, 0.08);
+        }
+
+        tfoot tr td {
+            position: sticky;
+            bottom: 0;
+            z-index: 15;
+            background-color: #f0fdfa;
+            box-shadow: 0 -2px 4px -1px rgba(15, 23, 42, 0.05);
+        }
+
+        tfoot tr td.sticky-col-right {
+            position: sticky;
+            bottom: 0;
+            right: 0;
+            z-index: 35;
+            background-color: #e6fffa;
+            box-shadow: -4px -2px 10px -2px rgba(15, 23, 42, 0.08);
+        }
+
+        tbody tr td.sticky-col-right {
             position: sticky;
             right: 0;
-            z-index: 20;
+            z-index: 10;
             background-color: #ffffff;
-            box-shadow: -4px 0 12px -2px rgba(15, 23, 42, 0.08);
+            box-shadow: -4px 0 10px -2px rgba(15, 23, 42, 0.08);
         }
 
-        thead .sticky-col-right {
-            z-index: 30;
+        tbody tr:hover td.sticky-col-right {
             background-color: #f8fafc;
         }
 
-        tfoot .sticky-col-right {
+        /* Left Fade Shadow Indicator when columns overflow */
+        .table-wrapper-left-shadow::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 28px;
+            pointer-events: none;
+            background: linear-gradient(to right, rgba(15, 23, 42, 0.12), transparent);
             z-index: 25;
-            background-color: #f0fdfa;
+            border-top-left-radius: 1rem;
+            border-bottom-left-radius: 1rem;
+            animation: fadeIn 0.2s ease-in;
         }
 
-        tr:hover .sticky-col-right {
-            background-color: #f8fafc;
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         /* Custom touch-friendly checkbox animation */
@@ -119,22 +185,22 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col select-none">
+<body class="min-h-screen flex flex-col">
 
     <header class="bg-gradient-to-l from-teal-800 via-teal-700 to-emerald-700 text-white shadow-md sticky top-0 z-40">
-        <div class="max-w-6xl mx-auto px-3 py-2.5 flex items-center justify-between gap-2">
+        <div class="max-w-6xl mx-auto px-2.5 sm:px-3 py-2 flex items-center justify-between gap-1.5 sm:gap-2">
             <!-- App Brand & Editable Title -->
             <div class="flex items-center gap-2 min-w-0 flex-1">
-                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-teal-900/40 backdrop-blur flex items-center justify-center shrink-0 shadow-md border border-white/20 overflow-hidden">
-                    <img src="./favicon.svg" alt="المضيافة" class="w-7 h-7 sm:w-8 sm:h-8 object-contain drop-shadow">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-teal-900/40 backdrop-blur flex items-center justify-center shrink-0 shadow-md border border-white/20 overflow-hidden" style="width: 36px; height: 36px; min-width: 36px;">
+                    <img src="./favicon.svg" alt="المضيافة" width="28" height="28" style="width: 28px; height: 28px; min-width: 28px; max-width: 28px; object-fit: contain;" class="drop-shadow">
                 </div>
-                <div class="min-w-0 flex-1 truncate">
+                <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-1.5 cursor-pointer group" onclick="openTitleModal()">
-                        <h1 id="madyafaTitleDisplay" class="font-bold text-sm sm:text-lg truncate">دفتر المضيافة الذكي</h1>
-                        <i class="fa-solid fa-pen text-[10px] sm:text-[11px] text-teal-200 opacity-80 group-hover:opacity-100"></i>
+                        <h1 id="madyafaTitleDisplay" class="font-extrabold text-sm sm:text-lg text-white leading-tight truncate">دفتر المضيافة الذكي</h1>
+                        <i class="fa-solid fa-pen text-[10px] sm:text-[11px] text-teal-200 opacity-80 group-hover:opacity-100 shrink-0"></i>
                     </div>
                     <p class="text-[10px] sm:text-[11px] text-teal-100 flex items-center gap-1.5 truncate">
-                        <span class="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
                         <span id="storageStatusText" class="truncate">حفظ مؤمّن • الشهرية: <strong id="headerDefaultAmount">100</strong> ج.م</span>
                     </p>
                 </div>
@@ -142,17 +208,16 @@
 
             <!-- Top Action Buttons -->
             <div class="flex items-center gap-1 sm:gap-1.5 shrink-0">
-                <button id="installPwaBtn" onclick="triggerPwaInstall()" class="bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-extrabold text-xs px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-xl shadow flex items-center gap-1 sm:gap-1.5 transition" title="تثبيت التطبيق على الموبايل">
+                <button id="installPwaBtn" onclick="triggerPwaInstall()" class="bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-extrabold text-xs px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl shadow flex items-center gap-1 transition" title="تثبيت التطبيق على الموبايل">
                     <i class="fa-solid fa-mobile-screen-button text-amber-950 text-sm"></i>
                     <span class="hidden sm:inline">تثبيت التطبيق</span>
                     <span class="sm:hidden text-[11px]">تثبيت</span>
                 </button>
-                <button onclick="openWhatsAppModal()" class="bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-white font-bold text-xs px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl shadow flex items-center gap-1 sm:gap-1.5 transition" title="مشاركة التقرير عبر واتساب">
-                    <i class="fa-brands fa-whatsapp text-sm sm:text-base"></i>
+                <button onclick="openWhatsAppModal()" class="w-8 h-8 sm:w-auto sm:px-3 sm:py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow transition" title="مشاركة التقرير عبر واتساب">
+                    <i class="fa-brands fa-whatsapp text-base"></i>
                     <span class="hidden sm:inline">تقرير واتساب</span>
-                    <span class="sm:hidden text-[11px]">تقرير</span>
                 </button>
-                <button onclick="openBackupModal()" class="bg-white/15 hover:bg-white/25 active:scale-95 text-white text-xs px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-xl border border-white/20 flex items-center gap-1 sm:gap-1.5 transition" title="إعدادات الشهرية والنسخ الاحتياطي">
+                <button onclick="openBackupModal()" class="w-8 h-8 sm:w-auto sm:px-2.5 sm:py-2 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 text-white text-xs border border-white/20 flex items-center justify-center gap-1.5 transition" title="إعدادات الشهرية والنسخ الاحتياطي">
                     <i class="fa-solid fa-sliders text-sm"></i>
                     <span class="hidden md:inline font-bold">الإعدادات</span>
                 </button>
@@ -258,24 +323,33 @@
     <main class="max-w-6xl w-full mx-auto px-3 py-2.5 flex-1 flex flex-col">
         <!-- Helper Banner for Auto-Expanding Columns -->
         <div class="mb-2 px-3 py-1.5 bg-teal-50/90 border border-teal-200/70 rounded-xl flex items-center justify-between text-[11px] text-teal-800">
-            <div class="flex items-center gap-1.5">
-                <i class="fa-solid fa-wand-magic-sparkles text-teal-600"></i>
-                <span><strong>ميزة ذكية:</strong> عند التعليم في آخر عمود، يتم إنشاء عمود جديد تلقائياً! اضغط على اسم أي عمود لتعديله.</span>
+            <div class="flex items-center gap-1.5 min-w-0 flex-1 truncate">
+                <i class="fa-solid fa-wand-magic-sparkles text-teal-600 shrink-0"></i>
+                <span class="truncate"><strong>ميزة ذكية:</strong> عند التعليم في آخر عمود، يتم إنشاء عمود جديد تلقائياً!</span>
             </div>
-            <div class="flex items-center gap-1 shrink-0 mr-2">
-                <button onclick="scrollTableHorizontally(200)" class="w-6 h-6 rounded-lg bg-white border border-teal-200 flex items-center justify-center text-teal-700 active:scale-90" title="تمرير لليمين">
-                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            <div class="flex items-center gap-1 shrink-0 mr-1.5">
+                <span class="text-[10px] text-teal-700 font-bold hidden sm:inline">تمرير:</span>
+                <button type="button" onclick="scrollTableToEdge('start')" class="px-2 py-1 rounded-lg bg-white border border-teal-300 text-teal-800 shadow-sm flex items-center gap-1 active:scale-95 transition text-[11px] font-bold hover:bg-teal-50" title="الرجوع لأسماء الأعضاء (البداية)">
+                    <i class="fa-solid fa-angles-right text-[10px]"></i>
+                    <span class="hidden md:inline">الأسماء</span>
                 </button>
-                <button onclick="scrollTableHorizontally(-200)" class="w-6 h-6 rounded-lg bg-white border border-teal-200 flex items-center justify-center text-teal-700 active:scale-90" title="تمرير لليسار">
-                    <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                <button type="button" onclick="scrollTableHorizontally('right')" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white border border-teal-300 text-teal-800 shadow-sm flex items-center justify-center active:scale-90 transition font-bold hover:bg-teal-50" title="تمرير لليمين (الأعضاء)">
+                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                </button>
+                <button type="button" onclick="scrollTableHorizontally('left')" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white border border-teal-300 text-teal-800 shadow-sm flex items-center justify-center active:scale-90 transition font-bold hover:bg-teal-50" title="تمرير لليسار (باقي الأعمدة)">
+                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                </button>
+                <button type="button" onclick="scrollTableToEdge('end')" class="px-2 py-1 rounded-lg bg-white border border-teal-300 text-teal-800 shadow-sm flex items-center gap-1 active:scale-95 transition text-[11px] font-bold hover:bg-teal-50" title="الذهاب لآخر دفعة (النهاية)">
+                    <span class="hidden md:inline">آخر عمود</span>
+                    <i class="fa-solid fa-angles-left text-[10px]"></i>
                 </button>
             </div>
         </div>
 
         <!-- Table Wrapper -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col">
+        <div id="tableCardWrapper" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col relative">
             <div id="tableScrollContainer" class="table-scroll-container flex-1">
-                <table class="w-full border-collapse text-right">
+                <table id="membersTable" class="border-collapse text-right" style="min-width: max-content; width: 100%; table-layout: auto;">
                     <thead id="tableHead" class="bg-slate-50 border-b border-slate-200 text-slate-700 text-xs">
                         <!-- Dynamically rendered sticky header + dynamic columns -->
                     </thead>
@@ -738,7 +812,7 @@
             
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2">
-                    <img src="./favicon.svg" alt="المضيافة" class="w-7 h-7 rounded-lg">
+                    <img src="./favicon.svg" alt="المضيافة" width="28" height="28" style="width: 28px; height: 28px; min-width: 28px; max-width: 28px; object-fit: contain;" class="rounded-lg">
                     <h3 class="font-bold text-base text-slate-800">تثبيت التطبيق على الهاتف</h3>
                 </div>
                 <button onclick="closeModal('installGuideModal')" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 transition">
@@ -993,6 +1067,7 @@
             renderActiveColumnSelect();
             renderSummaryBar();
             renderTable(newlyCreatedColId);
+            updateTableScrollIndicators();
         }
 
         function renderActiveColumnSelect() {
@@ -1063,9 +1138,9 @@
             // 1. Render Header
             let headHtml = `
                 <tr>
-                    <th class="sticky-col-right py-3 px-2.5 min-w-[165px] max-w-[190px] sm:min-w-[210px] border-l border-slate-200">
+                    <th class="sticky-col-right py-2.5 px-2 sm:px-2.5 min-w-[130px] max-w-[145px] sm:min-w-[200px] sm:max-w-[230px] border-l border-slate-200">
                         <div class="flex items-center justify-between">
-                            <span class="font-extrabold text-slate-800">م • اسم العضو</span>
+                            <span class="font-extrabold text-slate-800 text-xs sm:text-sm">م • اسم العضو</span>
                             <span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded-md">${appState.members.length}</span>
                         </div>
                     </th>
@@ -1078,10 +1153,10 @@
                 const activeHeaderBorder = isSelectedSummary ? 'border-b-2 border-b-teal-600 bg-teal-50/50' : '';
 
                 headHtml += `
-                    <th class="py-2.5 px-2 min-w-[122px] sm:min-w-[140px] border-l border-slate-200 text-center align-top ${activeHeaderBorder} ${flashClass}">
+                    <th class="py-2.5 px-2 min-w-[110px] sm:min-w-[135px] border-l border-slate-200 text-center align-top ${activeHeaderBorder} ${flashClass}">
                         <div onclick="openColumnModal('${col.id}')" class="cursor-pointer group rounded-xl p-1 hover:bg-slate-200/60 transition">
                             <div class="flex items-center justify-center gap-1 font-extrabold text-slate-800 text-xs leading-tight">
-                                <span class="truncate max-w-[105px]">${escapeHtml(col.name)}</span>
+                                <span class="truncate max-w-[100px]">${escapeHtml(col.name)}</span>
                                 <i class="fa-solid fa-pen text-[9px] text-slate-400 group-hover:text-teal-600 shrink-0"></i>
                             </div>
                             <div class="mt-1 flex items-center justify-center gap-1">
@@ -1098,8 +1173,8 @@
 
             // Quick Add Column Button at the end of the table
             headHtml += `
-                    <th class="py-2.5 px-2 min-w-[60px] text-center align-middle bg-slate-50">
-                        <button onclick="openColumnModal()" class="w-9 h-9 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 flex items-center justify-center mx-auto shadow-sm active:scale-90 transition" title="إضافة عمود تحصيل جديد">
+                    <th class="py-2.5 px-1.5 min-w-[55px] text-center align-middle bg-slate-50">
+                        <button onclick="openColumnModal()" class="w-8 h-8 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 flex items-center justify-center mx-auto shadow-sm active:scale-90 transition" title="إضافة عمود تحصيل جديد">
                             <i class="fa-solid fa-plus text-sm"></i>
                         </button>
                     </th>
@@ -1135,9 +1210,9 @@
                     const realIndex = appState.members.findIndex(m => m.id === member.id) + 1;
 
                     let rowCells = `
-                        <td class="sticky-col-right py-2.5 px-2.5 border-l border-slate-200 align-middle">
-                            <div onclick="openMemberModal('${member.id}')" class="cursor-pointer group flex items-start gap-2">
-                                <span class="w-5 h-5 rounded-md bg-slate-100 text-slate-600 font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5 border border-slate-200">
+                        <td class="sticky-col-right py-2 px-2 sm:px-2.5 min-w-[130px] max-w-[145px] sm:min-w-[200px] sm:max-w-[230px] border-l border-slate-200 align-middle">
+                            <div onclick="openMemberModal('${member.id}')" class="cursor-pointer group flex items-start gap-1.5 sm:gap-2">
+                                <span class="w-5 h-5 rounded-md bg-slate-100 text-slate-600 font-bold text-[10px] sm:text-[11px] flex items-center justify-center shrink-0 mt-0.5 border border-slate-200">
                                     ${realIndex}
                                 </span>
                                 <div class="min-w-0 flex-1">
@@ -1216,9 +1291,9 @@
             // 3. Render Footer Totals per Column
             let footHtml = `
                 <tr>
-                    <td class="sticky-col-right py-2.5 px-2.5 border-l border-teal-200 text-teal-900 font-extrabold">
-                        <div>إجمالي التحصيل</div>
-                        <div class="text-[10px] font-normal text-teal-700">المحصل والمتبقي بكل عمود</div>
+                    <td class="sticky-col-right py-2 px-2 sm:px-2.5 min-w-[130px] max-w-[145px] sm:min-w-[200px] sm:max-w-[230px] border-l border-teal-200 text-teal-900 font-extrabold">
+                        <div class="text-xs sm:text-sm">إجمالي التحصيل</div>
+                        <div class="text-[9px] sm:text-[10px] font-normal text-teal-700">المحصل والمتبقي</div>
                     </td>
             `;
 
@@ -1275,7 +1350,7 @@
             // If a new column was auto-created, smoothly reveal it
             if (newlyCreatedColId) {
                 setTimeout(() => {
-                    scrollTableHorizontally(-140);
+                    scrollTableToEdge('end');
                 }, 150);
             }
         }
@@ -1596,11 +1671,223 @@
             setPaymentFilter('all');
         }
 
-        function scrollTableHorizontally(delta) {
+        let _cachedRtlScrollType = null;
+        function getRtlScrollType() {
+            if (_cachedRtlScrollType) return _cachedRtlScrollType;
+            try {
+                const testDiv = document.createElement('div');
+                testDiv.dir = 'rtl';
+                testDiv.innerHTML = '<div style="width: 200px; height: 1px;"></div>';
+                testDiv.style.cssText = 'position: absolute; top: -9999px; width: 100px; height: 1px; overflow: scroll; visibility: hidden;';
+                document.body.appendChild(testDiv);
+                
+                if (testDiv.scrollLeft > 0) {
+                    _cachedRtlScrollType = 'positive';
+                } else {
+                    testDiv.scrollLeft = 1;
+                    if (testDiv.scrollLeft === 0) {
+                        _cachedRtlScrollType = 'negative';
+                    } else {
+                        _cachedRtlScrollType = 'reverse';
+                    }
+                }
+                document.body.removeChild(testDiv);
+            } catch (err) {
+                _cachedRtlScrollType = 'negative';
+            }
+            return _cachedRtlScrollType;
+        }
+
+        function scrollTableHorizontally(direction) {
             const container = document.getElementById('tableScrollContainer');
-            if (container) {
+            if (!container) return;
+            const type = getRtlScrollType();
+            const step = 280;
+
+            let delta = 0;
+            if (typeof direction === 'number') {
+                delta = direction;
+            } else if (direction === 'left') {
+                delta = -step;
+            } else if (direction === 'right') {
+                delta = step;
+            }
+
+            if (type === 'positive') {
+                container.scrollBy({ left: -delta, behavior: 'smooth' });
+            } else {
                 container.scrollBy({ left: delta, behavior: 'smooth' });
             }
+        }
+
+        function scrollTableToEdge(edge) {
+            const container = document.getElementById('tableScrollContainer');
+            if (!container) return;
+            const type = getRtlScrollType();
+
+            if (edge === 'start' || edge === 'right') {
+                if (type === 'positive') {
+                    container.scrollTo({ left: container.scrollWidth, behavior: 'smooth' });
+                } else {
+                    container.scrollTo({ left: 0, behavior: 'smooth' });
+                }
+            } else {
+                if (type === 'positive') {
+                    container.scrollTo({ left: 0, behavior: 'smooth' });
+                } else {
+                    container.scrollTo({ left: -container.scrollWidth, behavior: 'smooth' });
+                }
+            }
+        }
+
+        function updateTableScrollIndicators() {
+            const container = document.getElementById('tableScrollContainer');
+            const cardWrapper = document.getElementById('tableCardWrapper');
+            if (!container || !cardWrapper) return;
+
+            const maxScroll = container.scrollWidth - container.clientWidth;
+            if (maxScroll <= 8) {
+                cardWrapper.classList.remove('table-wrapper-left-shadow');
+                return;
+            }
+
+            const type = getRtlScrollType();
+            let atLeft = false;
+
+            if (type === 'positive') {
+                atLeft = container.scrollLeft <= 8;
+            } else {
+                atLeft = Math.abs(container.scrollLeft) >= maxScroll - 8;
+            }
+
+            if (!atLeft) {
+                cardWrapper.classList.add('table-wrapper-left-shadow');
+            } else {
+                cardWrapper.classList.remove('table-wrapper-left-shadow');
+            }
+        }
+
+        function initTableScrollHandlers() {
+            const container = document.getElementById('tableScrollContainer');
+            const cardWrapper = document.getElementById('tableCardWrapper');
+            if (!container) return;
+
+            let isMouseDown = false;
+            let isDragging = false;
+            let startX = 0;
+            let startY = 0;
+            let initialScrollLeft = 0;
+            let initialScrollTop = 0;
+            const dragThreshold = 6;
+
+            // Desktop Mouse Drag-to-Scroll
+            container.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return;
+
+                startX = e.pageX;
+                startY = e.pageY;
+                initialScrollLeft = container.scrollLeft;
+                initialScrollTop = container.scrollTop;
+                isMouseDown = true;
+                isDragging = false;
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isMouseDown) return;
+
+                const dx = e.pageX - startX;
+                const dy = e.pageY - startY;
+
+                if (!isDragging) {
+                    if (Math.abs(dx) > dragThreshold || Math.abs(dy) > dragThreshold) {
+                        isDragging = true;
+                        container.classList.add('is-dragging');
+                        document.body.style.userSelect = 'none';
+                    }
+                }
+
+                if (isDragging) {
+                    e.preventDefault();
+                    const type = getRtlScrollType();
+
+                    if (type === 'positive') {
+                        container.scrollLeft = initialScrollLeft - dx;
+                    } else {
+                        container.scrollLeft = initialScrollLeft + dx;
+                    }
+                    container.scrollTop = initialScrollTop - dy;
+                }
+            });
+
+            const finishDrag = () => {
+                if (!isMouseDown) return;
+                isMouseDown = false;
+                if (isDragging) {
+                    const suppressClick = (ev) => {
+                        ev.stopPropagation();
+                        ev.preventDefault();
+                        window.removeEventListener('click', suppressClick, true);
+                    };
+                    window.addEventListener('click', suppressClick, true);
+                    setTimeout(() => window.removeEventListener('click', suppressClick, true), 60);
+
+                    isDragging = false;
+                    container.classList.remove('is-dragging');
+                    document.body.style.userSelect = '';
+                }
+            };
+
+            window.addEventListener('mouseup', finishDrag);
+
+            // Touch on sticky right column (member names) to pan table horizontally
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let touchStartScroll = 0;
+            let touchIsHorizontal = false;
+            let touchDecided = false;
+
+            container.addEventListener('touchstart', (e) => {
+                if (e.touches.length !== 1) return;
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                touchStartScroll = container.scrollLeft;
+                touchIsHorizontal = false;
+                touchDecided = false;
+            }, { passive: true });
+
+            container.addEventListener('touchmove', (e) => {
+                if (e.touches.length !== 1) return;
+
+                const target = e.target;
+                const onSticky = target && target.closest('.sticky-col-right');
+                if (!onSticky) {
+                    // Non-sticky columns use smooth native hardware-accelerated scrolling
+                    return;
+                }
+
+                const dx = e.touches[0].clientX - touchStartX;
+                const dy = e.touches[0].clientY - touchStartY;
+
+                if (!touchDecided) {
+                    if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
+                        touchDecided = true;
+                        touchIsHorizontal = Math.abs(dx) > Math.abs(dy);
+                    }
+                }
+
+                if (touchIsHorizontal) {
+                    const type = getRtlScrollType();
+                    if (type === 'positive') {
+                        container.scrollLeft = touchStartScroll - dx;
+                    } else {
+                        container.scrollLeft = touchStartScroll + dx;
+                    }
+                }
+            }, { passive: true });
+
+            container.addEventListener('scroll', updateTableScrollIndicators, { passive: true });
+            window.addEventListener('resize', updateTableScrollIndicators, { passive: true });
+            setTimeout(updateTableScrollIndicators, 120);
         }
 
         function openWhatsAppModal() {
@@ -2015,11 +2302,11 @@ self.addEventListener('fetch', (event) => {
             const btn = document.getElementById('installPwaBtn');
             if (!btn) return;
             if (isAppInstalled()) {
-                btn.className = 'bg-white/15 text-white font-bold text-xs px-2.5 py-2 rounded-xl border border-white/20 flex items-center gap-1.5 transition';
-                btn.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-300"></i><span class="hidden sm:inline">التطبيق مثبت</span>';
+                btn.className = 'bg-white/15 text-white font-bold text-xs px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-xl border border-white/20 flex items-center gap-1 transition';
+                btn.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-300"></i><span class="hidden sm:inline">التطبيق مثبت</span><span class="sm:hidden text-[11px]">مثبت</span>';
             } else {
-                btn.className = 'bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-extrabold text-xs px-2.5 py-2 rounded-xl shadow flex items-center gap-1.5 transition';
-                btn.innerHTML = '<i class="fa-solid fa-mobile-screen-button text-amber-950 text-sm"></i><span>تثبيت التطبيق</span>';
+                btn.className = 'bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-extrabold text-xs px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl shadow flex items-center gap-1 transition';
+                btn.innerHTML = '<i class="fa-solid fa-mobile-screen-button text-amber-950 text-sm"></i><span class="hidden sm:inline">تثبيت التطبيق</span><span class="sm:hidden text-[11px]">تثبيت</span>';
             }
         }
 
@@ -2184,6 +2471,7 @@ self.addEventListener('fetch', (event) => {
         window.onload = function () {
             setupDynamicPWA();
             initPersistentStorageProtection();
+            initTableScrollHandlers();
             renderAll();
         };
     </script>
